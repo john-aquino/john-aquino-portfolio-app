@@ -13,6 +13,7 @@ export default function Home() {
           Fascinated by the intersection of technology and user experience, I bring forth a blend of
           engineering, design, and entrepreneurship to every project.
         </p>
+        
 
         <section className="my-8">
           <div className="flex justify-center space-x-4">
