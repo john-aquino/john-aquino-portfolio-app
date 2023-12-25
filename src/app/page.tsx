@@ -1,42 +1,49 @@
-import Link from 'next/link'
+"use client";
+
+import { useEffect, useState } from 'react';
+import LeftColumn from "../components/LeftColumn";
+import RightColumn from "../components/RightColumn";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function Home() {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  });
+  const [lightBgStyle, setLightBgStyle] = useState({ opacity: 1, transition: 'opacity 0.3s ease-in-out' });
+  const [darkBgStyle, setDarkBgStyle] = useState({ opacity: 0, transition: 'opacity 0.3s ease-in-out' });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      setLightBgStyle({ ...lightBgStyle, opacity: 0 });
+      setTimeout(() => setDarkBgStyle({ ...darkBgStyle, opacity: 1 }), 150); // Start halfway through the light mode transition
+    } else {
+      setDarkBgStyle({ ...darkBgStyle, opacity: 0 });
+      setTimeout(() => setLightBgStyle({ ...lightBgStyle, opacity: 1 }), 150); // Start halfway through the dark mode transition
+    }
+
+    // Toggle the dark-mode class after a delay to sync with the opacity transition
+    setTimeout(() => {
+      document.body.classList.toggle('dark-mode', isDarkMode);
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }, 300);
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-700">
-      <header className="flex flex-col items-center justify-center p-5">
-        <h1 className="text-4xl font-bold mb-4">John Aquino</h1>
-      </header>
-
-      <main className="flex-grow p-10 text-center">
-        <p className="mt-4">
-          Innovative software engineer with a passion for developing cutting-edge applications.
-          Fascinated by the intersection of technology and user experience, I bring forth a blend of
-          engineering, design, and entrepreneurship to every project.
-        </p>
-        
-
-        <section className="my-8">
-          <div className="flex justify-center space-x-4">
-            <Link href="https://github.com/john-aquino" target="_blank">
-              <span className="cursor-pointer hover:underline">GitHub</span>
-            </Link>
-            <Link href="https://inqo.io" target="_blank">
-              <span className="cursor-pointer hover:underline">Inqo</span>
-            </Link>
-            <Link href="https://apps.apple.com/ng/app/stegg/id1487379535" target="_blank">
-              <span className="cursor-pointer hover:underline">Stegg</span>
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      <footer className="p-5 border-t border-gray-200">
-        <div className="flex justify-center">
-          <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} John Aquino. All rights reserved.
-          </p>
+    <>
+      <div className="bg-light-mode" style={lightBgStyle}></div>
+      <div className="bg-dark-mode" style={darkBgStyle}></div>
+      <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <div className="container mx-auto ps-16 pt-16 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+          <LeftColumn/>
+          <RightColumn />
         </div>
-      </footer>
-    </div>
-  )
+      </div>
+    </>
+  );
 }

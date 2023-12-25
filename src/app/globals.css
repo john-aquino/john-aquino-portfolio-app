@@ -2,26 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light Theme Variables */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --light-background-gradient: linear-gradient(to bottom right, #e6f1ff, #ffffff);
+  --text-color: #333;
+  --accent-color-light: #007bff;
+  --accent-secondary-light: #ff7e67;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Dark Theme Variables */
+.dark-mode {
+  --dark-background-gradient: linear-gradient(to bottom right, #2a2d34, #1a1c23);
+  --text-color: #ffffff;
+  --accent-color-dark: #4b8fea;
+  --accent-secondary-dark: #ff9466;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--text-color);
+  height: 100vh;
+  transition: color 0.3s ease-in-out;
+}
+
+/* .dark-mode body {
+  color: var(--text-color-dark);
+} */
+
+.bg-light-mode, .bg-dark-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.bg-light-mode {
+  background: var(--light-background-gradient);
+}
+
+.bg-dark-mode {
+  background: var(--dark-background-gradient);
+}
+
+
+.dark-mode .bg-light-mode {
+  opacity: 0;
+}
+/* 
+.bg-dark-mode {
+  background: var(--dark-background-gradient);
+  opacity: 0;
+} */
+
+.dark-mode .bg-dark-mode {
+  opacity: 1;
+}
+
+.accent {
+  background-color: var(--accent-color-light);
+  color: #ffffff;
+}
+
+.dark-mode .accent {
+  background-color: var(--accent-color-dark);
+}
+
+.accent-secondary {
+  background-color: var(--accent-secondary-light);
+  color: #ffffff;
+}
+
+.dark-mode .accent-secondary {
+  background-color: var(--accent-secondary-dark);
+}
+
+.project-card {
+  background-color: #fff;
+  color: #333;
+  /* Other styles */
+}
+
+.dark-mode .project-card {
+  background-color: #2a2d34;
+  color: #fff;
+  /* Adjust other styles for dark mode as needed */
 }
