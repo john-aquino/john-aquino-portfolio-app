@@ -6,12 +6,14 @@ import RightColumn from "../components/RightColumn";
 import ThemeToggle from "../components/ThemeToggle";
 
 export default function Home() {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [lightBgStyle, setLightBgStyle] = useState({ opacity: 1, transition: 'opacity 0.3s ease-in-out' });
   const [darkBgStyle, setDarkBgStyle] = useState({ opacity: 0, transition: 'opacity 0.3s ease-in-out' });
 
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches));
+  }, []);
+  
   useEffect(() => {
     if (isDarkMode) {
       setLightBgStyle({ ...lightBgStyle, opacity: 0 });
