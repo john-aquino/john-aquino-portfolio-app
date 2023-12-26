@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches));
   }, []);
-  
+
   useEffect(() => {
     if (isDarkMode) {
       setLightBgStyle({ ...lightBgStyle, opacity: 0 });
@@ -39,13 +39,17 @@ export default function Home() {
       <div className="bg-light-mode" style={lightBgStyle}></div>
       <div className="bg-dark-mode" style={darkBgStyle}></div>
       <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-      <div className="container mx-auto ps-16 pt-16 h-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      
+      <div className="container mx-auto ps-4 pt-4 md:pt-16 md:ps-16 md:h-full h-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-4">
+        <div className="col-span-1 md:h-screen h-auto overflow-hidden"> {/* Adjusted height here */}
           <LeftColumn/>
+        </div>
+        <div className="col-span-1">
           <RightColumn />
         </div>
       </div>
+    </div>
+
     </>
   );
 }
