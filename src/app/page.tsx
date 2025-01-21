@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BsMoonFill, BsSunFill } from "react-icons/bs"; // For Dark Mode Icon
 import {
   FaAngular,
   FaAws,
@@ -35,7 +34,7 @@ const projects = [
   {
     name: "Stegg",
     description: "Hide any message in any image (steganography).",
-    icon: "/stegg-icon.png", // Use a smaller icon image
+    icon: "/stegg_app_logo.svg", // Use a smaller icon image
     url: "https://apps.apple.com/ng/app/stegg/id1487379535",
     techStack: [<FaMobileAlt key="mobile" />, <SiSwift key="swift" />],
     details:
@@ -49,35 +48,40 @@ const careerTimeline = [
     yearRange: "Mar 2023 - Present",
     position: "Application Engineer II at Vanguard",
     responsibilities: [
-      "Leading development of AI-driven prototypes and microservices",
-      "Mentoring junior engineers on best practices",
-      "Optimizing CI/CD pipelines and AWS infrastructure",
+      "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure.",
+      "Contributed to the modernization of the call center infrastructure, reducing agent call volume and lowering operational costs.",
+      "Acted as Site Reliability Champion, improving system availability, performance monitoring, and incident response.",
+      "Mentored junior engineers, fostering career development.",
     ],
   },
   {
-    yearRange: "2020 - Mar 2023",
+    yearRange: "Jun 2020 - Mar 2023",
     position: "Application Engineer I at Vanguard",
     responsibilities: [
-      "Developed modern web apps (Angular, React)",
-      "Implemented secure APIs and integrated AWS services",
-      "Collaborated with cross-functional teams to deliver robust features",
+      "Developed a transactions web app enabling seamless processing of high-value transactions exceeding $250,000.",
+      "Led the development of a mobile-responsive version of the app, empowering users to complete transactions on the go.",
     ],
   },
 ];
 
 const certifications = [
   {
-    name: "AWS AI Practitioner",
-    date: "Jan 2025",
-    details: "Foundational knowledge in machine learning on AWS.",
+    name: "AWS Certified Developer - Associate",
+    date: "Dec 2022",
+    details: "Expertise in deploying, debugging, and developing on AWS.",
   },
   {
-    name: "AWS Cloud Practitioner",
-    date: "Apr 2024",
-    details: "General cloud concepts, AWS services, security, pricing.",
+    name: "AWS Certified Cloud Practitioner",
+    date: "Aug 2022",
+    details: "Foundational cloud concepts, AWS services, security, and pricing.",
+  },
+  {
+    name: "AWS Certified AI Practitioner",
+    date: "Jan 2025",
+    details: "Foundational knowledge in machine learning and AI on AWS.",
+    credlyLink: "https://www.credly.com/badges/your-badge-link", // Update this link with your actual Credly URL
   },
 ];
-
 const education = [
   {
     school: "University of Georgia",
@@ -168,10 +172,29 @@ export default function Home() {
         throw new Error(`Error from server: ${res.status} ${res.statusText}`);
       }
 
-      const data = await res.json();
-      // For example, if the API returns { generatedText: "...", ... }
-      const botReplyText = data.generatedText || "No response from AI.";
-
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let rawData = "";
+  
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        rawData += decoder.decode(value, { stream: true });
+      }
+  
+      rawData += decoder.decode(); // Finalize decoding
+      console.log("Decoded Response Data:", rawData);
+  
+      // Parse the data if it's JSON
+      let data;
+      // try {
+      //   data = JSON.parse(rawData);
+      // } catch (err) {
+      //   throw new Error("Failed to parse JSON from response.");
+      // }
+  
+      const botReplyText = rawData || "No response from AI.";
+  
       // Add the bot's message to the conversation
       setMessages((prev) => [...prev, { role: "bot", text: botReplyText }]);
     } catch (err) {
@@ -231,7 +254,7 @@ export default function Home() {
       {/* Outer container: flex for desktop layout so we can shift main content. */}
       <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors md:flex">
         {/* Dark Mode Toggle in top-right */}
-        <button
+        {/* <button
           onClick={toggleDarkMode}
           className="absolute top-4 right-4 p-2 rounded-full 
             bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200
@@ -239,7 +262,7 @@ export default function Home() {
           aria-label="Toggle Dark Mode"
         >
           {isDarkMode ? <BsSunFill /> : <BsMoonFill />}
-        </button>
+        </button> */}
 
         {/* Main content area. Add margin-right on desktop if chat is open. */}
         <div
@@ -268,19 +291,19 @@ export default function Home() {
               engineering, design, and entrepreneurship to every project.
             </p>
             <div className="flex space-x-4 mt-6">
-              <Link href="https://github.com/john-aquino" target="_blank">
-                <FaGithub
-                  size={28}
-                  className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                />
-              </Link>
-              <Link href="https://www.linkedin.com/in/john-a-aquino/" target="_blank">
-                <FaLinkedinIn
-                  size={28}
-                  className="hover:text-blue-700 transition-colors"
-                />
-              </Link>
-            </div>
+  <Link href="https://github.com/john-aquino" target="_blank">
+    <FaGithub
+      size={28}
+      className="text-gray-800 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+    />
+  </Link>
+  <Link href="https://www.linkedin.com/in/john-a-aquino/" target="_blank">
+    <FaLinkedinIn
+      size={28}
+      className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+    />
+  </Link>
+</div>
             <button
               onClick={() => setChatOpen(true)}
               className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors text-lg font-medium"

@@ -12,8 +12,10 @@ async function streamToString(stream: AsyncIterable<any>): Promise<string> {
   let result = "";
 
   for await (const chunk of stream) {
-    // Assuming chunk contains a Uint8Array or buffer-like object
-    result += decoder.decode(chunk, { stream: true });
+    // Decode the chunk (assuming it's Uint8Array or buffer-like)
+    if (chunk?.bytes) {
+      result += decoder.decode(chunk.bytes, { stream: true });
+    }
   }
 
   // Finalize decoding
@@ -23,12 +25,23 @@ async function streamToString(stream: AsyncIterable<any>): Promise<string> {
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const { input } = await req.json();
+    console.log("Headers:", req.headers);
 
-    if (!input) {
-      return new Response("Input is required", { status: 400 });
+    // Validate content type
+    if (!req.headers.get("content-type")?.includes("application/json")) {
+      return new Response("Invalid content type. Expected application/json.", { status: 400 });
     }
 
+    // Parse the request body
+    const body = await req.json();
+    console.log("Parsed body:", body);
+
+    // Validate the `input` field
+    if (!body?.input || typeof body.input !== "string") {
+      return new Response("Invalid input. Expected a JSON object with an 'input' field of type string.", { status: 400 });
+    }
+
+    // Initialize Bedrock Agent Runtime Client
     const client = new BedrockAgentRuntimeClient({
       region: process.env.AWS_REGION,
       credentials: {
@@ -37,19 +50,34 @@ export async function POST(req: Request): Promise<Response> {
       },
     });
 
+    // Call the Bedrock agent with the user's input
     const command = new InvokeAgentCommand({
-      agentId: "EYAKHASD7N", // Replace with your agent ID
-      inputText: input,
-      agentAliasId: "C9KSXNVZIA",
-      sessionId: "1233",
+      agentId: "EYAKHASD7N", // Replace with your Bedrock Agent ID
+      agentAliasId: "C9KSXNVZIA", // Replace with your Bedrock Agent Alias ID
+      inputText: body.input,
+      sessionId: "unique-session-id", // Replace with a unique session ID
     });
 
     const response = await client.send(command);
+    // Log the completion field to inspect its structure
+    // console.log("Response completion field:", response.completion);
 
-    const rawData = await streamToString(response.completion!);
-    const parsedData = JSON.parse(rawData);
+    if (response.completion === undefined) {
+      throw new Error("Completion is undefined");
+    }
+    let completion = "";
 
-    return new Response(JSON.stringify(parsedData), { status: 200 });
+    for await (const chunkEvent of response.completion) {
+      const chunk = chunkEvent.chunk;
+      // console.log(new TextDecoder("utf-8").decode(chunk?.bytes));
+      const decodedResponse = new TextDecoder("utf-8").decode(chunk?.bytes);
+      completion += decodedResponse;
+    }
+
+    console.log(completion)
+
+    return new Response(completion) ;
+    
   } catch (error: any) {
     console.error("Error invoking Bedrock:", error);
     return new Response(
