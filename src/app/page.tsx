@@ -384,7 +384,7 @@ export default function Home() {
                 onClick={() => handleSuggestedQuestion("What's John's current role?")}
                 className="mt-4 underline text-blue-600 dark:text-blue-400"
               >
-                Ask AI about John's career
+                Ask AI about John&rsquo;s career
               </button>
             </section>
 
@@ -432,7 +432,7 @@ export default function Home() {
                 onClick={() => handleSuggestedQuestion("Where did John go to school?")}
                 className="mt-4 underline text-blue-600 dark:text-blue-400"
               >
-                Ask AI about John's education
+                Ask AI about John&rsquo;s education
               </button>
             </section>
           </main>
@@ -518,7 +518,7 @@ function DesktopChatPanel({
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-blue-500 text-white">
-          <h2 className="font-bold text-lg">John's AI</h2>
+          <h2 className="font-bold text-lg">John&rsquo;s AI</h2>
           <button
             onClick={() => setChatOpen(false)}
             className="hover:text-gray-300 transition"
