@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -13,6 +14,8 @@ import {
   FaPython,
 } from "react-icons/fa";
 import { SiFlutter, SiSwift } from "react-icons/si";
+import { PuffLoader } from "react-spinners";
+
 
 /** ========== DATA SECTION ========== */
 const projects = [
@@ -96,6 +99,8 @@ const education = [
 export default function Home() {
   // ========== DARK MODE TOGGLE STATE ==========
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     // On mount, check if user prefers dark
     const prefersDark = window.matchMedia(
@@ -159,6 +164,10 @@ export default function Home() {
     setCurrentInput("");
 
     try {
+      setIsLoading(true);
+      const placeholderBotMsg = { role: "bot", text: "" };
+      const newBotIndex = messages.length + 1; // we’re adding userMessage + placeholder
+      setMessages((prev) => [...prev, placeholderBotMsg]);
       // Call your Next.js API route — e.g., "/api/query-bedrock"
       const res = await fetch("/api/query-bedrock", {
         method: "POST",
@@ -175,40 +184,48 @@ export default function Home() {
       const reader = res.body!.getReader();
       const decoder = new TextDecoder("utf-8");
       let rawData = "";
-  
+      let partialText = "";
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        rawData += decoder.decode(value, { stream: true });
+
+        // Decode the chunk
+        partialText += decoder.decode(value, { stream: true });
+
+        // Update the placeholder bot message with the partial text
+        setMessages((prev) => {
+          const updated = [...prev];
+          // updated[newBotIndex] is our “bot” placeholder
+          updated[newBotIndex] = { role: "bot", text: partialText };
+          return updated;
+        });
       }
-  
-      rawData += decoder.decode(); // Finalize decoding
-      console.log("Decoded Response Data:", rawData);
-  
-      // Parse the data if it's JSON
-      let data;
-      // try {
-      //   data = JSON.parse(rawData);
-      // } catch (err) {
-      //   throw new Error("Failed to parse JSON from response.");
-      // }
-  
-      const botReplyText = rawData || "No response from AI.";
-  
-      // Add the bot's message to the conversation
-      setMessages((prev) => [...prev, { role: "bot", text: botReplyText }]);
+
+      partialText += decoder.decode();
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[newBotIndex] = { role: "bot", text: partialText };
+        return updated;
+      });
     } catch (err) {
       console.error("Error calling AI API:", err);
       setMessages((prev) => [
         ...prev,
         { role: "bot", text: "Oops, something went wrong!" },
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   /** For suggested Qs */
   const handleSuggestedQuestion = (question: string) => {
     setCurrentInput(question);
+
+    if (!chatOpen) {
+      setChatOpen(true)
+    }
     // auto-send for a snappier user experience
     setTimeout(() => handleSend(), 100);
   };
@@ -276,7 +293,7 @@ export default function Home() {
               alt="John Aquino"
               width={128}
               height={128}
-              className="rounded-full shadow-lg object-cover grayscale hover:grayscale-0 hover:scale-105 transition-all duration-300"
+              className="rounded-full shadow-lg object-cover hover:scale-105 transition-all duration-300"
             />
             <h1 className="text-3xl md:text-5xl font-bold mt-4 text-gray-800 dark:text-gray-100">
               John Aquino
@@ -291,19 +308,19 @@ export default function Home() {
               engineering, design, and entrepreneurship to every project.
             </p>
             <div className="flex space-x-4 mt-6">
-  <Link href="https://github.com/john-aquino" target="_blank">
-    <FaGithub
-      size={28}
-      className="text-gray-800 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-    />
-  </Link>
-  <Link href="https://www.linkedin.com/in/john-a-aquino/" target="_blank">
-    <FaLinkedinIn
-      size={28}
-      className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-    />
-  </Link>
-</div>
+              <Link href="https://github.com/john-aquino" target="_blank">
+                <FaGithub
+                  size={28}
+                  className="text-gray-800 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                />
+              </Link>
+              <Link href="https://www.linkedin.com/in/john-a-aquino/" target="_blank">
+                <FaLinkedinIn
+                  size={28}
+                  className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                />
+              </Link>
+            </div>
             <button
               onClick={() => setChatOpen(true)}
               className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors text-lg font-medium"
@@ -440,6 +457,7 @@ export default function Home() {
 
         {/* DESKTOP CHAT PANEL */}
         <DesktopChatPanel
+          isLoading={isLoading}
           chatOpen={chatOpen}
           setChatOpen={setChatOpen}
           messages={messages}
@@ -454,6 +472,7 @@ export default function Home() {
       {/* MOBILE BOTTOM SHEET */}
       <MobileChatSheet
         chatOpen={chatOpen}
+        isLoading={isLoading}
         setChatOpen={setChatOpen}
         messages={messages}
         currentInput={currentInput}
@@ -487,6 +506,7 @@ function DesktopChatPanel({
   currentInput,
   setCurrentInput,
   handleSend,
+  isLoading,
   suggestedQuestions,
   handleSuggestedQuestion,
 }: {
@@ -496,6 +516,7 @@ function DesktopChatPanel({
   currentInput: string;
   setCurrentInput: (val: string) => void;
   handleSend: () => void;
+  isLoading: boolean;
   suggestedQuestions: string[];
   handleSuggestedQuestion: (q: string) => void;
 }) {
@@ -531,13 +552,18 @@ function DesktopChatPanel({
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
-                msg.role === "bot"
+              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${msg.role === "bot"
                   ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
                   : "bg-blue-500 text-white self-end ml-auto"
-              }`}
+                }`}
             >
               {msg.text}
+              {/* Only show spinner on the most recent bot message while loading */}
+              {msg.role === "bot" && isLoading && i === messages.length - 1 && (
+                <span className="ml-2 inline-block">
+                  <PuffLoader color="#3498db" size={24} />
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -586,6 +612,7 @@ function MobileChatSheet({
   messages,
   currentInput,
   setCurrentInput,
+  isLoading,
   handleSend,
   suggestedQuestions,
   handleSuggestedQuestion,
@@ -594,6 +621,7 @@ function MobileChatSheet({
   setChatOpen: (open: boolean) => void;
   messages: { role: string; text: string }[];
   currentInput: string;
+  isLoading: boolean;
   setCurrentInput: (val: string) => void;
   handleSend: () => void;
   suggestedQuestions: string[];
@@ -628,13 +656,18 @@ function MobileChatSheet({
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
-                msg.role === "bot"
+              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${msg.role === "bot"
                   ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
                   : "bg-blue-500 text-white self-end ml-auto"
-              }`}
+                }`}
             >
               {msg.text}
+              {/* Only show spinner on the most recent bot message while loading */}
+              {msg.role === "bot" && isLoading && i === messages.length - 1 && (
+                <span className="ml-2 inline-block">
+                  <PuffLoader color="#3498db" size={24} />
+                </span>
+              )}
             </div>
           ))}
         </div>
