@@ -52,10 +52,10 @@ export async function POST(req: Request): Promise<Response> {
 
     // Call the Bedrock agent with the user's input
     const command = new InvokeAgentCommand({
-      agentId: "EYAKHASD7N", // Replace with your Bedrock Agent ID
-      agentAliasId: "C9KSXNVZIA", // Replace with your Bedrock Agent Alias ID
+      agentId: "EYAKHASD7N",
+      agentAliasId: "C9KSXNVZIA", 
       inputText: body.input,
-      sessionId: "unique-session-id", // Replace with a unique session ID
+      sessionId: body.sessionId ?? "default",
     });
 
     const response = await client.send(command);

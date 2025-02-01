@@ -14,6 +14,8 @@ import {
 } from "react-icons/fa";
 import { SiFlutter, SiSwift } from "react-icons/si";
 import { PuffLoader } from "react-spinners";
+import { v4 as uuidv4 } from "uuid";
+
 
 /** ========== DATA SECTION ========== */
 const projects = [
@@ -110,6 +112,8 @@ export default function Home() {
   // ========== DARK MODE TOGGLE STATE ==========
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null); // State for sessionId
+
 
   useEffect(() => {
     const prefersDark = window.matchMedia(
@@ -125,6 +129,11 @@ export default function Home() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const newSessionId = uuidv4();
+    setSessionId(newSessionId);
+  }, []);
 
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
@@ -175,7 +184,7 @@ export default function Home() {
       const res = await fetch("/api/query-bedrock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: userMessage.text }),
+        body: JSON.stringify({ input: userMessage.text, sessionId }),
       });
 
       if (!res.ok) {
