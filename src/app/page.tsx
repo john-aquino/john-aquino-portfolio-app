@@ -447,7 +447,7 @@ export default function Home() {
                 onClick={() => handleSuggestedQuestion("What are John's technical skills?")}
                 className="mt-4 underline text-blue-600 dark:text-blue-400"
               >
-                Ask AI about John's technical skills
+                Ask AI about John&rsquo;s technical skills
               </button>
             </section>
 
