@@ -236,39 +236,7 @@ export default function Home() {
     setTimeout(() => handleSend(), 100);
   };
 
-  const generateBotReply = (query: string) => {
-    let replyText = "Hmm, that's interesting. Tell me more!";
-    const lowerQ = query.toLowerCase();
-
-    if (lowerQ.includes("project")) {
-      replyText = `John has ${projects.length} featured projects: ${projects
-        .map((p) => p.name)
-        .join(", ")}. Ask for details on any project!`;
-    } else if (lowerQ.includes("cert") || lowerQ.includes("aws")) {
-      replyText = `John holds certifications such as: ${certifications
-        .map((c) => c.name)
-        .join(", ")}.`;
-    } else if (lowerQ.includes("educat") || lowerQ.includes("school")) {
-      replyText = `John studied at UGA from 2016-2020, focusing on Cyber Security, Linear Algebra, and Evolutionary Computation.`;
-    } else if (lowerQ.includes("role") || lowerQ.includes("career")) {
-      replyText = `John has worked at Vanguard since 2020. Currently an Application Engineer II (since March 2023). Ask more about responsibilities!`;
-    } else if (lowerQ.includes("responsib")) {
-      replyText = careerTimeline
-        .map(
-          (job) =>
-            `${job.yearRange}: ${job.position}\nResponsibilities:\n- ${job.responsibilities.join(
-              "\n- "
-            )}`
-        )
-        .join("\n\n");
-    } else if (lowerQ.includes("details inqo")) {
-      replyText =
-        projects.find((p) => p.name.toLowerCase().includes("inqo"))
-          ?.details || "Inqo is a daily 20 questions game.";
-    }
-    return { role: "bot", text: replyText };
-  };
-
+  
   return (
     <>
       {/* Outer container with responsive layout */}
@@ -475,6 +443,12 @@ export default function Home() {
                   </ul>
                 </div>
               </div>
+              <button
+                onClick={() => handleSuggestedQuestion("What are John's technical skills?")}
+                className="mt-4 underline text-blue-600 dark:text-blue-400"
+              >
+                Ask AI about John's technical skills
+              </button>
             </section>
 
             {/* Certifications Section */}
