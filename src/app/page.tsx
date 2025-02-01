@@ -51,6 +51,8 @@ const careerTimeline = [
     responsibilities: [
       "Designed and developed robust web applications using Angular for the front-end and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.",
       "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure, enhancing scalability and accessibility.",
+      "Designed and developed robust web applications using Angular for the front-end and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.",
+      "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure, enhancing scalability and accessibility.",
       "Contributed to the modernization of the call center infrastructure, reducing agent call volume and lowering operational costs.",
       "Implemented microservices-based solutions, improving system modularity and maintainability.",
       "Implemented monitoring and logging solutions using AWS CloudWatch and Splunk to track application performance and ensure high availability.",
@@ -63,6 +65,9 @@ const careerTimeline = [
     yearRange: "Jun 2020 - Mar 2023",
     position: "Application Engineer I at Vanguard",
     responsibilities: [
+      "Contributed to the development of a high-value transactions web application, enabling users to process large transactions with enhanced security and reliability.",
+      "Led the development of a mobile-responsive version of the app using Angular, empowering users to complete transactions on the go.",
+      "Implemented RESTful APIs to facilitate seamless communication between front-end and back-end systems.",
       "Contributed to the development of a high-value transactions web application, enabling users to process large transactions with enhanced security and reliability.",
       "Led the development of a mobile-responsive version of the app using Angular, empowering users to complete transactions on the go.",
       "Implemented RESTful APIs to facilitate seamless communication between front-end and back-end systems.",
@@ -85,9 +90,10 @@ const certifications = [
     name: "AWS Certified AI Practitioner",
     date: "Jan 2025",
     details: "Foundational knowledge in machine learning and AI on AWS.",
-    credlyLink: "https://www.credly.com/badges/your-badge-link", // Update with your actual Credly URL if needed
+    // credlyLink: "https://www.credly.com/badges/your-badge-link", // Update with your actual Credly URL if needed
   },
 ];
+
 
 const education = [
   {
@@ -163,6 +169,7 @@ export default function Home() {
     try {
       setIsLoading(true);
       const placeholderBotMsg = { role: "bot", text: "" };
+      const newBotIndex = messages.length + 1; // we’re adding userMessage + placeholder
       setMessages((prev) => [...prev, placeholderBotMsg]);
 
       const res = await fetch("/api/query-bedrock", {
@@ -417,6 +424,8 @@ export default function Home() {
               </button>
             </section>
 
+           
+            {/* Certifications Section */}
             {/* Technical Skills Section */}
             <section id="skills" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Technical Skills</h2>
@@ -484,6 +493,7 @@ export default function Home() {
               </button>
             </section>
 
+            {/* Education Section */}
             {/* Education Section */}
             <section id="education" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Education</h2>
@@ -708,6 +718,7 @@ function MobileChatSheet({
                   ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
                   : "bg-blue-500 text-white self-end ml-auto"
               }`}
+            
             >
               {msg.text}
               {msg.role === "bot" && isLoading && i === messages.length - 1 && (
