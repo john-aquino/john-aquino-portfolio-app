@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -15,7 +14,6 @@ import {
 } from "react-icons/fa";
 import { SiFlutter, SiSwift } from "react-icons/si";
 import { PuffLoader } from "react-spinners";
-
 
 /** ========== DATA SECTION ========== */
 const projects = [
@@ -32,7 +30,7 @@ const projects = [
       <FaDatabase key="database" />,
     ],
     details:
-      "Built with Flutter, AWS Lambdas (Python), ChatGPT API, and a playful UI. Responsible for full-stack architecture and deployment.",
+      "Architected and developed the full-stack infrastructure for Inqo, a daily AI-driven game app built with Flutter and AWS services. Automated infrastructure provisioning using AWS CloudFormation for rapid deployment and scaling. Launched on both iOS and Android platforms, ensuring a consistent user experience. Reduced cloud costs by over 50% through effective optimization and iterative Agile methodologies.",
   },
   {
     name: "Stegg",
@@ -41,7 +39,7 @@ const projects = [
     url: "https://apps.apple.com/ng/app/stegg/id1487379535",
     techStack: [<FaMobileAlt key="mobile" />, <SiSwift key="swift" />],
     details:
-      "Developed a Swift app implementing steganography. Users can embed text in images and share securely.",
+      "Developed a Swift iOS application that enables users to securely embed text within images using steganography techniques. Implemented robust encryption algorithms to ensure data privacy and integrity. Designed an intuitive user interface for embedding and extracting messages, and conducted comprehensive testing prior to deployment.",
   },
   // Add more projects here...
 ];
@@ -51,18 +49,23 @@ const careerTimeline = [
     yearRange: "Mar 2023 - Present",
     position: "Application Engineer II at Vanguard",
     responsibilities: [
-      "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure.",
+      "Designed and developed robust web applications using Angular for the front-end and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.",
+      "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure, enhancing scalability and accessibility.",
       "Contributed to the modernization of the call center infrastructure, reducing agent call volume and lowering operational costs.",
-      "Acted as Site Reliability Champion, improving system availability, performance monitoring, and incident response.",
-      "Mentored junior engineers, fostering career development.",
+      "Implemented microservices-based solutions, improving system modularity and maintainability.",
+      "Implemented monitoring and logging solutions using AWS CloudWatch and Splunk to track application performance and ensure high availability.",
+      "Acted as Site Reliability Champion, leading efforts to improve system availability, performance monitoring, and incident response processes.",
+      "Mentored and guided junior engineers, fostering their professional growth and improving team productivity.",
+      "Developed and successfully demoed an AWS Bedrock Generative UI POC to leadership, showcasing innovative AI-driven solutions.",
     ],
   },
   {
     yearRange: "Jun 2020 - Mar 2023",
     position: "Application Engineer I at Vanguard",
     responsibilities: [
-      "Developed a transactions web app enabling seamless processing of high-value transactions exceeding $250,000.",
-      "Led the development of a mobile-responsive version of the app, empowering users to complete transactions on the go.",
+      "Contributed to the development of a high-value transactions web application, enabling users to process large transactions with enhanced security and reliability.",
+      "Led the development of a mobile-responsive version of the app using Angular, empowering users to complete transactions on the go.",
+      "Implemented RESTful APIs to facilitate seamless communication between front-end and back-end systems.",
     ],
   },
 ];
@@ -82,16 +85,17 @@ const certifications = [
     name: "AWS Certified AI Practitioner",
     date: "Jan 2025",
     details: "Foundational knowledge in machine learning and AI on AWS.",
-    credlyLink: "https://www.credly.com/badges/your-badge-link", // Update this link with your actual Credly URL
+    credlyLink: "https://www.credly.com/badges/your-badge-link", // Update with your actual Credly URL if needed
   },
 ];
+
 const education = [
   {
     school: "University of Georgia",
     degree: "B.S. in Computer Science",
     years: "2016-2020",
     details:
-      "Relevant Coursework: Evolutionary Computation, Linear Algebra, Cyber Security, Distributed Systems.",
+      "Relevant Coursework: Cyber Security, Linear Algebra, Evolutionary Computation",
   },
 ];
 
@@ -102,7 +106,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // On mount, check if user prefers dark
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
@@ -110,7 +113,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Toggle the <html> or <body> class
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
@@ -130,7 +132,6 @@ export default function Home() {
   ]);
   const [currentInput, setCurrentInput] = useState("");
 
-  // Example “suggested questions”
   const suggestedQuestions = [
     "Show me John's top projects",
     "Does John have any AWS certifications?",
@@ -138,7 +139,6 @@ export default function Home() {
     "What's John's current role?",
   ];
 
-  /** Simple text selection handler (optional) */
   useEffect(() => {
     const handleMouseUp = () => {
       const selection = window?.getSelection()?.toString();
@@ -152,28 +152,22 @@ export default function Home() {
     };
   }, []);
 
-  /** Handle sending a message */
   const handleSend = async () => {
     if (!currentInput.trim()) return;
 
-    // Add user message to the UI
     const userMessage = { role: "user", text: currentInput };
     setMessages((prev) => [...prev, userMessage]);
-
-    // Clear the input
     setCurrentInput("");
 
     try {
       setIsLoading(true);
       const placeholderBotMsg = { role: "bot", text: "" };
-      const newBotIndex = messages.length + 1; // we’re adding userMessage + placeholder
+      const newBotIndex = messages.length + 1;
       setMessages((prev) => [...prev, placeholderBotMsg]);
-      // Call your Next.js API route — e.g., "/api/query-bedrock"
+
       const res = await fetch("/api/query-bedrock", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input: userMessage.text }),
       });
 
@@ -183,20 +177,15 @@ export default function Home() {
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder("utf-8");
-      let rawData = "";
       let partialText = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        // Decode the chunk
         partialText += decoder.decode(value, { stream: true });
-
-        // Update the placeholder bot message with the partial text
         setMessages((prev) => {
           const updated = [...prev];
-          // updated[newBotIndex] is our “bot” placeholder
           updated[newBotIndex] = { role: "bot", text: partialText };
           return updated;
         });
@@ -219,21 +208,16 @@ export default function Home() {
     }
   };
 
-  /** For suggested Qs */
   const handleSuggestedQuestion = (question: string) => {
     setCurrentInput(question);
-
     if (!chatOpen) {
-      setChatOpen(true)
+      setChatOpen(true);
     }
-    // auto-send for a snappier user experience
     setTimeout(() => handleSend(), 100);
   };
 
-  /** ========== BASIC KEYWORD LOGIC (MVP) ========== */
   const generateBotReply = (query: string) => {
     let replyText = "Hmm, that's interesting. Tell me more!";
-
     const lowerQ = query.toLowerCase();
 
     if (lowerQ.includes("project")) {
@@ -245,7 +229,7 @@ export default function Home() {
         .map((c) => c.name)
         .join(", ")}.`;
     } else if (lowerQ.includes("educat") || lowerQ.includes("school")) {
-      replyText = `John studied at UGA from 2016-2020, focusing on Evolutionary Computation, Cyber Security, etc.`;
+      replyText = `John studied at UGA from 2016-2020, focusing on Cyber Security, Linear Algebra, and Evolutionary Computation.`;
     } else if (lowerQ.includes("role") || lowerQ.includes("career")) {
       replyText = `John has worked at Vanguard since 2020. Currently an Application Engineer II (since March 2023). Ask more about responsibilities!`;
     } else if (lowerQ.includes("responsib")) {
@@ -258,35 +242,24 @@ export default function Home() {
         )
         .join("\n\n");
     } else if (lowerQ.includes("details inqo")) {
-      // Example if user wants more detail on Inqo specifically
-      replyText = projects.find((p) => p.name.toLowerCase().includes("inqo"))
-        ?.details || "Inqo is a daily 20 questions game.";
+      replyText =
+        projects.find((p) => p.name.toLowerCase().includes("inqo"))
+          ?.details || "Inqo is a daily 20 questions game.";
     }
-
     return { role: "bot", text: replyText };
   };
 
   return (
     <>
-      {/* Outer container: flex for desktop layout so we can shift main content. */}
-      <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors md:flex">
-        {/* Dark Mode Toggle in top-right */}
-        {/* <button
-          onClick={toggleDarkMode}
-          className="absolute top-4 right-4 p-2 rounded-full 
-            bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200
-            shadow-md hover:bg-gray-300 dark:hover:bg-gray-600 z-50"
-          aria-label="Toggle Dark Mode"
-        >
-          {isDarkMode ? <BsSunFill /> : <BsMoonFill />}
-        </button> */}
-
-        {/* Main content area. Add margin-right on desktop if chat is open. */}
-        <div
-          className={`flex-grow transition-all duration-300 
-            ${chatOpen ? "md:mr-[25vw]" : ""}`}
-        >
-          {/* ========== HERO SECTION ========== */}
+      {/* Outer container with responsive layout */}
+      <div
+        className={`relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors md:flex ${
+          chatOpen ? "md:mr-[25vw]" : ""
+        }`}
+      >
+        {/* Main Content */}
+        <div className="flex-grow transition-all duration-300">
+          {/* HERO SECTION */}
           <header className="flex flex-col items-center text-center p-6 bg-gray-100 dark:bg-gray-800">
             <Image
               src="/john-aquino.jpeg"
@@ -302,10 +275,7 @@ export default function Home() {
               Experienced Full Stack Engineer
             </p>
             <p className="mt-4 max-w-2xl text-gray-700 dark:text-gray-300">
-              Innovative software engineer with a passion for developing
-              cutting-edge applications. Fascinated by the intersection of
-              technology and user experience, I bring forth a blend of
-              engineering, design, and entrepreneurship to every project.
+              Innovative software engineer with a passion for developing cutting-edge applications. Fascinated by the intersection of technology and user experience, I bring forth a blend of engineering, design, and entrepreneurship to every project.
             </p>
             <div className="flex space-x-4 mt-6">
               <Link href="https://github.com/john-aquino" target="_blank">
@@ -329,9 +299,9 @@ export default function Home() {
             </button>
           </header>
 
-          {/* ========== MAIN SECTIONS ========== */}
+          {/* MAIN SECTIONS */}
           <main className="p-6 md:p-10 text-gray-800 dark:text-gray-100">
-            {/* Projects */}
+            {/* Projects Section */}
             <section id="projects" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Projects</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -340,7 +310,6 @@ export default function Home() {
                     key={project.name}
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex items-center gap-4"
                   >
-                    {/* Smaller icon instead of large screenshot */}
                     <div className="w-16 h-16 relative flex-shrink-0">
                       <Image
                         src={project.icon}
@@ -378,23 +347,62 @@ export default function Home() {
               </button>
             </section>
 
-            {/* Career Timeline (moved up) */}
+            {/* Career Timeline Section */}
             <section id="career" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Career Timeline</h2>
               {careerTimeline.map((item) => (
                 <div
                   key={item.yearRange}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4"
+                  className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 mb-4"
                 >
                   <h3 className="font-bold text-lg">{item.position}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {item.yearRange}
-                  </p>
-                  <ul className="list-disc list-inside mt-2">
-                    {item.responsibilities.map((res, i) => (
-                      <li key={i}>{res}</li>
-                    ))}
+                  <p className="text-sm mb-2">{item.yearRange}</p>
+                  {item.position === "Application Engineer II at Vanguard" && (
+                     <ul className="list-disc list-inside space-y-1 mt-4">
+                     <li>
+                       <strong>Full Stack Development:</strong> Designed and developed robust web applications using Angular for the front-end
+                       and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.
+                     </li>
+                     <li>
+                       <strong>AWS Integration:</strong> Migrated legacy mainframe data for users holding large amount of assets to AWS cloud infrastructure, enhancing scalability and accessibility.
+                     </li>
+                     <li>
+                        <strong>Call Center Modernization:
+                         </strong> Contributed to the modernization of the call center infrastructure, reducing agent call volume, and lowering operational costs.
+                     </li>
+                     <li>
+                       <strong>Microservices Architecture:</strong> Implemented microservices-based solutions, improving system
+                       modularity and maintainability.
+                     </li>
+                     <li>
+                       <strong>Performance Monitoring:</strong> Implemented monitoring and logging solutions using CloudWatch and Splunk to track
+                       application performance and ensure high availability.
+                     </li>
+                     <li>
+                       <strong>Site Reliability Engineering:</strong> Acted as Site Reliability Champion, leading efforts to improve system availability, performance monitoring, and incident response processes.
+                     </li>
+                     <li>
+                       <strong>Mentorship:</strong> Mentored and guided junior engineers, fostering their professional growth and improving team
+                       productivity.
+                     </li>
+                   </ul>
+                  )}
+                    {item.position === "Application Engineer I at Vanguard" && (
+                    <ul className="list-disc list-inside space-y-1 mt-4">
+                    <li>
+                      <strong>Transactions Application:</strong> Contributed to the development of a high-value transactions web application,
+                      enabling users to process large transactions with enhanced security and reliability.
+                    </li>
+                    <li>
+                      <strong>Responsive Design:</strong> Led the development of a mobile-responsive version of the transactions web app using Angular,
+                      increasing user accessibility.
+                    </li>
+                    <li>
+                      <strong>API Development:</strong> Implemented RESTful APIs to facilitate seamless communication between front-end and
+                      back-end systems.
+                    </li>
                   </ul>
+                    )}
                 </div>
               ))}
               <button
@@ -405,14 +413,56 @@ export default function Home() {
               </button>
             </section>
 
-            {/* Certifications */}
+            {/* Technical Skills Section */}
+            <section id="skills" className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4">Technical Skills</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800">
+                  <h3 className="text-lg font-bold mb-2">Programming Languages</h3>
+                  <ul className="list-disc list-inside">
+                    <li>Java</li>
+                    <li>Python</li>
+                    <li>TypeScript/JavaScript</li>
+                    <li>Dart</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800">
+                  <h3 className="text-lg font-bold mb-2">Frameworks & Libraries</h3>
+                  <ul className="list-disc list-inside">
+                    <li>Spring Boot</li>
+                    <li>Angular</li>
+                    <li>Next.js</li>
+                    <li>React</li>
+                    <li>Flutter</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800">
+                  <h3 className="text-lg font-bold mb-2">Cloud & DevOps</h3>
+                  <ul className="list-disc list-inside">
+                    <li>
+                      AWS (Lambda, API Gateway, DynamoDB, S3, Cognito, Bedrock, EC2, Step Functions, SQS, SNS, CloudWatch, CloudFormation)
+                    </li>
+                    <li>CI/CD & API Development</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800">
+                  <h3 className="text-lg font-bold mb-2">Monitoring & Logging</h3>
+                  <ul className="list-disc list-inside">
+                    <li>Splunk</li>
+                    <li>AWS CloudWatch</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Certifications Section */}
             <section id="certifications" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Certifications</h2>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {certifications.map((cert) => (
                   <div
                     key={cert.name}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4"
+                    className="rounded-lg shadow-xl p-6 bg-gray-100 dark:bg-gray-800"
                   >
                     <h3 className="font-bold text-lg mb-1">{cert.name}</h3>
                     <p className="text-sm mb-1">Date: {cert.date}</p>
@@ -430,7 +480,7 @@ export default function Home() {
               </button>
             </section>
 
-            {/* Education (moved lower) */}
+            {/* Education Section */}
             <section id="education" className="mb-10">
               <h2 className="text-2xl font-semibold mb-4">Education</h2>
               {education.map((edu) => (
@@ -482,7 +532,7 @@ export default function Home() {
         handleSuggestedQuestion={handleSuggestedQuestion}
       />
 
-      {/* If chat isn't open, show floating button on desktop */}
+      {/* Floating Chat Button for Desktop */}
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
@@ -520,10 +570,7 @@ function DesktopChatPanel({
   suggestedQuestions: string[];
   handleSuggestedQuestion: (q: string) => void;
 }) {
-  if (!chatOpen) {
-    // Hidden if chat isn't open
-    return null;
-  }
+  if (!chatOpen) return null;
 
   return (
     <div className="hidden md:block">
@@ -540,25 +587,22 @@ function DesktopChatPanel({
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-blue-500 text-white">
           <h2 className="font-bold text-lg">John&rsquo;s AI</h2>
-          <button
-            onClick={() => setChatOpen(false)}
-            className="hover:text-gray-300 transition"
-          >
+          <button onClick={() => setChatOpen(false)} className="hover:text-gray-300 transition">
             ✕
           </button>
         </div>
-        {/* Chat body */}
+        {/* Chat Body */}
         <div className="flex-1 p-3 space-y-2 overflow-auto bg-gray-50 dark:bg-gray-700">
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${msg.role === "bot"
+              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
+                msg.role === "bot"
                   ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
                   : "bg-blue-500 text-white self-end ml-auto"
-                }`}
+              }`}
             >
               {msg.text}
-              {/* Only show spinner on the most recent bot message while loading */}
               {msg.role === "bot" && isLoading && i === messages.length - 1 && (
                 <span className="ml-2 inline-block">
                   <PuffLoader color="#3498db" size={24} />
@@ -627,7 +671,6 @@ function MobileChatSheet({
   suggestedQuestions: string[];
   handleSuggestedQuestion: (q: string) => void;
 }) {
-  // Show only on mobile
   if (!chatOpen) return null;
 
   return (
@@ -656,13 +699,13 @@ function MobileChatSheet({
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${msg.role === "bot"
+              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
+                msg.role === "bot"
                   ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
                   : "bg-blue-500 text-white self-end ml-auto"
-                }`}
+              }`}
             >
               {msg.text}
-              {/* Only show spinner on the most recent bot message while loading */}
               {msg.role === "bot" && isLoading && i === messages.length - 1 && (
                 <span className="ml-2 inline-block">
                   <PuffLoader color="#3498db" size={24} />
