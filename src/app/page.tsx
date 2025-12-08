@@ -13,9 +13,6 @@ import {
   FaPython,
 } from "react-icons/fa";
 import { SiFlutter, SiSwift } from "react-icons/si";
-import { PuffLoader } from "react-spinners";
-import { v4 as uuidv4 } from "uuid";
-
 
 /** ========== DATA SECTION ========== */
 const projects = [
@@ -48,11 +45,18 @@ const projects = [
 
 const careerTimeline = [
   {
-    yearRange: "Mar 2023 - Present",
+    yearRange: "Mar 2025 - Present",
+    position: "Application Engineer III at Vanguard",
+    responsibilities: [
+      "Helped ship call center bots to improve customer service efficiency.",
+      "Created robust production support dashboards for better system observability.",
+      "Working to deliver a multi-agent AI application to cut processing time by 1-3 weeks.",
+    ],
+  },
+  {
+    yearRange: "Mar 2023 - Mar 2025",
     position: "Application Engineer II at Vanguard",
     responsibilities: [
-      "Designed and developed robust web applications using Angular for the front-end and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.",
-      "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure, enhancing scalability and accessibility.",
       "Designed and developed robust web applications using Angular for the front-end and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.",
       "Migrated legacy mainframe data for users holding over $1 trillion in assets to AWS cloud infrastructure, enhancing scalability and accessibility.",
       "Contributed to the modernization of the call center infrastructure, reducing agent call volume and lowering operational costs.",
@@ -67,9 +71,6 @@ const careerTimeline = [
     yearRange: "Jun 2020 - Mar 2023",
     position: "Application Engineer I at Vanguard",
     responsibilities: [
-      "Contributed to the development of a high-value transactions web application, enabling users to process large transactions with enhanced security and reliability.",
-      "Led the development of a mobile-responsive version of the app using Angular, empowering users to complete transactions on the go.",
-      "Implemented RESTful APIs to facilitate seamless communication between front-end and back-end systems.",
       "Contributed to the development of a high-value transactions web application, enabling users to process large transactions with enhanced security and reliability.",
       "Led the development of a mobile-responsive version of the app using Angular, empowering users to complete transactions on the go.",
       "Implemented RESTful APIs to facilitate seamless communication between front-end and back-end systems.",
@@ -111,10 +112,6 @@ const education = [
 export default function Home() {
   // ========== DARK MODE TOGGLE STATE ==========
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null); // State for sessionId
-
-
   useEffect(() => {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -130,120 +127,14 @@ export default function Home() {
     }
   }, [isDarkMode]);
 
-  useEffect(() => {
-    const newSessionId = uuidv4();
-    setSessionId(newSessionId);
-  }, []);
-
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
-
-  // ========== CHAT STATE & LOGIC ==========
-  const [chatOpen, setChatOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: "bot",
-      text: "Hello! I'm your AI companion. Ask me anything about John—his projects, certs, education, or career!",
-    },
-  ]);
-  const [currentInput, setCurrentInput] = useState("");
-
-  const suggestedQuestions = [
-    "Show me John's top projects",
-    "Does John have any AWS certifications?",
-    "Where did John go to school?",
-    "What's John's current role?",
-  ];
-
-  useEffect(() => {
-    const handleMouseUp = () => {
-      const selection = window?.getSelection()?.toString();
-      if (selection) {
-        console.log("User selected text:", selection);
-      }
-    };
-    document.addEventListener("mouseup", handleMouseUp);
-    return () => {
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []);
-
-  const handleSend = async () => {
-    if (!currentInput.trim()) return;
-
-    const userMessage = { role: "user", text: currentInput };
-    setMessages((prev) => [...prev, userMessage]);
-    setCurrentInput("");
-    const newBotIndex = messages.length + 1;
-
-    try {
-      setIsLoading(true);
-      const placeholderBotMsg = { role: "bot", text: "" };
-      const newBotIndex = messages.length + 1; // we’re adding userMessage + placeholder
-      setMessages((prev) => [...prev, placeholderBotMsg]);
-
-      const res = await fetch("/api/query-bedrock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: userMessage.text, sessionId }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Error from server: ${res.status} ${res.statusText}`);
-      }
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let partialText = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        partialText += decoder.decode(value, { stream: true });
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[newBotIndex] = { role: "bot", text: partialText };
-          return updated;
-        });
-      }
-
-      partialText += decoder.decode();
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[newBotIndex] = { role: "bot", text: partialText };
-        return updated;
-      });
-    } catch (err) {
-      console.error("Error calling AI API:", err);
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[newBotIndex] = {
-          role: "bot",
-          text: "Sorry, I couldn't fetch a response. Please try again.",
-        };
-        return updated
-    });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSuggestedQuestion = (question: string) => {
-    setCurrentInput(question);
-    if (!chatOpen) {
-      setChatOpen(true);
-    }
-    setTimeout(() => handleSend(), 100);
-  };
 
   
   return (
     <>
       {/* Outer container with responsive layout */}
       <div
-        className={`relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors md:flex ${
-          chatOpen ? "md:mr-[25vw]" : ""
-        }`}
+        className={`relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors md:flex`}
       >
         {/* Main Content */}
         <div className="flex-grow transition-all duration-300">
@@ -279,12 +170,6 @@ export default function Home() {
                 />
               </Link>
             </div>
-            <button
-              onClick={() => setChatOpen(true)}
-              className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors text-lg font-medium"
-            >
-              Ask My AI
-            </button>
           </header>
 
           {/* MAIN SECTIONS */}
@@ -327,12 +212,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => handleSuggestedQuestion("Show me John's top projects")}
-                className="mt-4 underline text-blue-600 dark:text-blue-400"
-              >
-                Ask AI about these projects
-              </button>
             </section>
 
             {/* Career Timeline Section */}
@@ -345,60 +224,13 @@ export default function Home() {
                 >
                   <h3 className="font-bold text-lg">{item.position}</h3>
                   <p className="text-sm mb-2">{item.yearRange}</p>
-                  {item.position === "Application Engineer II at Vanguard" && (
-                     <ul className="list-disc list-inside space-y-1 mt-4">
-                     <li>
-                       <strong>Full Stack Development:</strong> Designed and developed robust web applications using Angular for the front-end
-                       and Python Lambdas & Spring Boot (Java) for the backend, ensuring seamless integration and high performance.
-                     </li>
-                     <li>
-                       <strong>AWS Integration:</strong> Migrated legacy mainframe data for users holding large amount of assets to AWS cloud infrastructure, enhancing scalability and accessibility.
-                     </li>
-                     <li>
-                        <strong>Call Center Modernization:
-                         </strong> Contributed to the modernization of the call center infrastructure, reducing agent call volume, and lowering operational costs.
-                     </li>
-                     <li>
-                       <strong>Microservices Architecture:</strong> Implemented microservices-based solutions, improving system
-                       modularity and maintainability.
-                     </li>
-                     <li>
-                       <strong>Performance Monitoring:</strong> Implemented monitoring and logging solutions using CloudWatch and Splunk to track
-                       application performance and ensure high availability.
-                     </li>
-                     <li>
-                       <strong>Site Reliability Engineering:</strong> Acted as Site Reliability Champion, leading efforts to improve system availability, performance monitoring, and incident response processes.
-                     </li>
-                     <li>
-                       <strong>Mentorship:</strong> Mentored and guided junior engineers, fostering their professional growth and improving team
-                       productivity.
-                     </li>
-                   </ul>
-                  )}
-                    {item.position === "Application Engineer I at Vanguard" && (
-                    <ul className="list-disc list-inside space-y-1 mt-4">
-                    <li>
-                      <strong>Transactions Application:</strong> Contributed to the development of a high-value transactions web application,
-                      enabling users to process large transactions with enhanced security and reliability.
-                    </li>
-                    <li>
-                      <strong>Responsive Design:</strong> Led the development of a mobile-responsive version of the transactions web app using Angular,
-                      increasing user accessibility.
-                    </li>
-                    <li>
-                      <strong>API Development:</strong> Implemented RESTful APIs to facilitate seamless communication between front-end and
-                      back-end systems.
-                    </li>
+                  <ul className="list-disc list-inside space-y-1 mt-4">
+                    {item.responsibilities.map((resp, idx) => (
+                      <li key={idx}>{resp}</li>
+                    ))}
                   </ul>
-                    )}
                 </div>
               ))}
-              <button
-                onClick={() => handleSuggestedQuestion("What's John's current role?")}
-                className="mt-4 underline text-blue-600 dark:text-blue-400"
-              >
-                Ask AI about John&rsquo;s career
-              </button>
             </section>
 
            
@@ -443,12 +275,6 @@ export default function Home() {
                   </ul>
                 </div>
               </div>
-              <button
-                onClick={() => handleSuggestedQuestion("What are John's technical skills?")}
-                className="mt-4 underline text-blue-600 dark:text-blue-400"
-              >
-                Ask AI about John&rsquo;s technical skills
-              </button>
             </section>
 
             {/* Certifications Section */}
@@ -466,14 +292,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() =>
-                  handleSuggestedQuestion("Does John have any AWS certifications?")
-                }
-                className="mt-4 underline text-blue-600 dark:text-blue-400"
-              >
-                Ask AI about these certifications
-              </button>
             </section>
 
             {/* Education Section */}
@@ -492,257 +310,10 @@ export default function Home() {
                   <p className="text-sm">{edu.details}</p>
                 </div>
               ))}
-              <button
-                onClick={() => handleSuggestedQuestion("Where did John go to school?")}
-                className="mt-4 underline text-blue-600 dark:text-blue-400"
-              >
-                Ask AI about John&rsquo;s education
-              </button>
             </section>
           </main>
         </div>
-
-        {/* DESKTOP CHAT PANEL */}
-        <DesktopChatPanel
-          isLoading={isLoading}
-          chatOpen={chatOpen}
-          setChatOpen={setChatOpen}
-          messages={messages}
-          currentInput={currentInput}
-          setCurrentInput={setCurrentInput}
-          handleSend={handleSend}
-          suggestedQuestions={suggestedQuestions}
-          handleSuggestedQuestion={handleSuggestedQuestion}
-        />
       </div>
-
-      {/* MOBILE BOTTOM SHEET */}
-      <MobileChatSheet
-        chatOpen={chatOpen}
-        isLoading={isLoading}
-        setChatOpen={setChatOpen}
-        messages={messages}
-        currentInput={currentInput}
-        setCurrentInput={setCurrentInput}
-        handleSend={handleSend}
-        suggestedQuestions={suggestedQuestions}
-        handleSuggestedQuestion={handleSuggestedQuestion}
-      />
-
-      {/* Floating Chat Button for Desktop */}
-      {!chatOpen && (
-        <button
-          onClick={() => setChatOpen(true)}
-          className="hidden md:block fixed bottom-4 right-4 bg-blue-500 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors text-lg font-medium"
-        >
-          Ask AI
-        </button>
-      )}
     </>
-  );
-}
-
-/*  ---------------------------
-    DESKTOP RIGHT-SIDE CHAT
-    ---------------------------
-*/
-function DesktopChatPanel({
-  chatOpen,
-  setChatOpen,
-  messages,
-  currentInput,
-  setCurrentInput,
-  handleSend,
-  isLoading,
-  suggestedQuestions,
-  handleSuggestedQuestion,
-}: {
-  chatOpen: boolean;
-  setChatOpen: (open: boolean) => void;
-  messages: { role: string; text: string }[];
-  currentInput: string;
-  setCurrentInput: (val: string) => void;
-  handleSend: () => void;
-  isLoading: boolean;
-  suggestedQuestions: string[];
-  handleSuggestedQuestion: (q: string) => void;
-}) {
-  if (!chatOpen) return null;
-
-  return (
-    <div className="hidden md:block">
-      <div
-        className="
-          fixed top-0 right-0 
-          w-[25vw] h-screen 
-          bg-white dark:bg-gray-800 
-          z-50 
-          shadow-2xl 
-          flex flex-col
-        "
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-blue-500 text-white">
-          <h2 className="font-bold text-lg">John&rsquo;s AI</h2>
-          <button onClick={() => setChatOpen(false)} className="hover:text-gray-300 transition">
-            ✕
-          </button>
-        </div>
-        {/* Chat Body */}
-        <div className="flex-1 p-3 space-y-2 overflow-auto bg-gray-50 dark:bg-gray-700">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
-                msg.role === "bot"
-                  ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
-                  : "bg-blue-500 text-white self-end ml-auto"
-              }`}
-            >
-              {msg.text}
-              {msg.role === "bot" && isLoading && i === messages.length - 1 && (
-                <span className="ml-2 inline-block">
-                  <PuffLoader color="#3498db" size={24} />
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-        {/* Suggested Prompts */}
-        <div className="p-2 bg-gray-200 dark:bg-gray-600 flex flex-wrap gap-2">
-          {suggestedQuestions.map((q, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSuggestedQuestion(q)}
-              className="bg-white dark:bg-gray-500 text-xs px-2 py-1 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-400 transition"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-        {/* Input */}
-        <div className="p-3 border-t border-gray-300 dark:border-gray-700 flex">
-          <input
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
-            className="flex-grow p-2 rounded-l-md dark:bg-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 focus:outline-none"
-            placeholder="Type a message..."
-          />
-          <button
-            onClick={handleSend}
-            className="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition-colors"
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/*  ---------------------------
-    MOBILE BOTTOM SHEET CHAT
-    ---------------------------
-*/
-function MobileChatSheet({
-  chatOpen,
-  setChatOpen,
-  messages,
-  currentInput,
-  setCurrentInput,
-  isLoading,
-  handleSend,
-  suggestedQuestions,
-  handleSuggestedQuestion,
-}: {
-  chatOpen: boolean;
-  setChatOpen: (open: boolean) => void;
-  messages: { role: string; text: string }[];
-  currentInput: string;
-  isLoading: boolean;
-  setCurrentInput: (val: string) => void;
-  handleSend: () => void;
-  suggestedQuestions: string[];
-  handleSuggestedQuestion: (q: string) => void;
-}) {
-  if (!chatOpen) return null;
-
-  return (
-    <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black bg-opacity-60"
-        onClick={() => setChatOpen(false)}
-      />
-      {/* Bottom Sheet */}
-      <div className="relative bg-white dark:bg-gray-800 w-full h-[80vh] rounded-t-3xl p-4 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-bold text-lg text-gray-700 dark:text-gray-100">
-            John’s AI
-          </span>
-          <button
-            onClick={() => setChatOpen(false)}
-            className="text-gray-700 dark:text-gray-100 hover:text-gray-500"
-          >
-            ✕
-          </button>
-        </div>
-        {/* Body */}
-        <div className="flex-1 p-2 space-y-2 overflow-auto rounded-md bg-gray-50 dark:bg-gray-700">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`max-w-[80%] px-3 py-2 rounded-md whitespace-pre-wrap break-words my-1 ${
-                msg.role === "bot"
-                  ? "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 self-start"
-                  : "bg-blue-500 text-white self-end ml-auto"
-              }`}
-            
-            >
-              {msg.text}
-              {msg.role === "bot" && isLoading && i === messages.length - 1 && (
-                <span className="ml-2 inline-block">
-                  <PuffLoader color="#3498db" size={24} />
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-        {/* Suggested Prompts */}
-        <div className="flex flex-wrap gap-2 my-2">
-          {suggestedQuestions.map((q, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSuggestedQuestion(q)}
-              className="bg-blue-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs px-2 py-1 rounded-md shadow-sm hover:bg-blue-200 dark:hover:bg-gray-500 transition"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-        {/* Input */}
-        <div className="flex border-t border-gray-200 dark:border-gray-700 pt-2">
-          <input
-            value={currentInput}
-            onChange={(e) => setCurrentInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
-            className="flex-grow p-2 rounded-l-md dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 focus:outline-none focus:border-blue-500"
-            placeholder="Type a message..."
-          />
-          <button
-            onClick={handleSend}
-            className="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 transition-colors"
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
