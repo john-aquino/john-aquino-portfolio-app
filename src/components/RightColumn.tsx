@@ -7,15 +7,15 @@ const RightColumn = () => {
     {
       name: 'Inqo',
       description: 'A unique daily 20 questions game.',
-      image: '/inqo-webpage.png',
+      image: '/inqo.webp',
       url: 'https://inqo.io',
       techStack: [<SiFlutter key="flutter" />, <FaAws key="aws" />, <FaPython key="python" />, <FaAngular key="angular" />, <FaDatabase key="database" />],
     },
     {
       name: 'Stegg',
       description: 'An app to hide any message in any image.',
-      image: '/stegg-page.png',
-      url: 'https://apps.apple.com/ng/app/stegg/id1487379535',
+      image: '/stegg-app-logo-dark-green.webp',
+      url: 'https://stegg.io',
       techStack: [<FaMobileAlt key="xcode" />, <SiSwift key="swift" />],
     },
     // ... more projects
