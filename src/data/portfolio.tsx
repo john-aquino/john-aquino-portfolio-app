@@ -34,7 +34,7 @@ export const projects = [
     ],
     highlights: ["LSB Steganography", "Spread Spectrum", "Encryption"],
     details:
-      "Built a cross-platform Flutter application that enables users to securely embed text within images using both LSB (Least Significant Bit) and Spread Spectrum steganography techniques. Implemented robust encryption algorithms to ensure data privacy and integrity. Designed an intuitive user interface for embedding and extracting messages, and conducted comprehensive testing prior to deployment.",
+      "Built a Flutter iOS application that enables users to securely embed text within images using both LSB (Least Significant Bit) and Spread Spectrum steganography techniques. Implemented robust encryption algorithms to ensure data privacy and integrity. Designed an intuitive user interface for embedding and extracting messages, and launched on iOS.",
   },
 ];
 
@@ -110,16 +110,12 @@ export const careerTimeline = [
     tags: ["Angular", "REST APIs", "Responsive Design"],
     responsibilities: [
       {
-        text: "Developed a high-value transactions web application with enhanced security and reliability for Vanguard's institutional and retail clients.",
+        text: "Built a high-value transactions web application with enhanced security and reliability for Vanguard's institutional and retail clients.",
         impact: null,
       },
       {
-        text: "Led the mobile-responsive version of the app using Angular.",
+        text: "Led delivery of the mobile-responsive Angular experience for the transactions platform.",
         impact: "Enabled secure high-value transactions from mobile browsers across iOS and Android",
-      },
-      {
-        text: "Implemented RESTful APIs for seamless front-end/back-end communication.",
-        impact: null,
       },
     ],
   },

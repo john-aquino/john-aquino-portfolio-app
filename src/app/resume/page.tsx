@@ -133,7 +133,7 @@ export default function ResumePage() {
               <p className="text-sm leading-snug mt-0.5">
                 Solving the problem of covert communication — lets users hide any message inside
                 any image. Built with Flutter using LSB and Spread Spectrum steganography with
-                encryption for data integrity. Launched on iOS and Android.
+                encryption for data integrity. Launched on iOS.
               </p>
             </div>
           </div>
