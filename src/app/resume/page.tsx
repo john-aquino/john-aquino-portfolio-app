@@ -37,6 +37,11 @@ export default function ResumePage() {
             {" · "}
             <a href="https://johnaquino.com" className="hover:underline">johnaquino.com</a>
           </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {process.env.NEXT_PUBLIC_RESUME_EMAIL}
+            {" · "}
+            {process.env.NEXT_PUBLIC_RESUME_PHONE}
+          </p>
         </header>
 
         {/* Summary */}
