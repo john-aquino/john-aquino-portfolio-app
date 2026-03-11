@@ -1,3 +1,32 @@
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
+
+/* Resume print styles */
+.resume-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1e40af;
+  border-bottom: 1px solid #dbeafe;
+  padding-bottom: 2px;
+  margin-bottom: 8px;
+}
+
+@media print {
+  @page {
+    margin: 0.5in 0.6in;
+    size: letter;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .resume-page {
+    font-size: 11pt;
+    line-height: 1.35;
+  }
+}
