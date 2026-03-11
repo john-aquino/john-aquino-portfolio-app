@@ -78,7 +78,7 @@ export const careerTimeline = [
     tags: ["Angular", "Spring Boot", "AWS", "Python", "Splunk"],
     responsibilities: [
       {
-        text: "Designed and developed web applications using Angular, Python Lambdas, and Spring Boot, serving Vanguard's $1T+ asset holder base.",
+        text: "Designed and developed web applications using Angular, Python Lambdas, and Spring Boot for backend services and customer-facing workflows.",
         impact: null,
       },
       {
@@ -99,7 +99,7 @@ export const careerTimeline = [
       },
       {
         text: "Developed and demoed an AWS Bedrock Generative UI POC to leadership.",
-        impact: "Showcasing innovative AI-driven solutions",
+        impact: "Led directly to production AI products built from the initial POC",
       },
     ],
   },
@@ -115,7 +115,7 @@ export const careerTimeline = [
       },
       {
         text: "Led the mobile-responsive version of the app using Angular.",
-        impact: "Empowering users to complete transactions on the go",
+        impact: "Enabled secure high-value transactions from mobile browsers across iOS and Android",
       },
       {
         text: "Implemented RESTful APIs for seamless front-end/back-end communication.",
