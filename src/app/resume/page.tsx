@@ -48,10 +48,10 @@ export default function ResumePage() {
         <section className="mb-5">
           <h2 className="resume-section-title">Summary</h2>
           <p className="text-sm leading-relaxed">
-            Software engineer with 6+ years of experience building production AI systems and cloud
-            applications at Vanguard. Specializing in multi-agent orchestration, retrieval-augmented
-            generation (RAG), and scalable backend infrastructure using Python and AWS. Released
-            multiple mobile apps on iOS and Android.
+            AI systems engineer specializing in production LLM architectures at enterprise scale.
+            6+ years at Vanguard building multi-agent orchestration, RAG pipelines, and cloud-native
+            infrastructure serving users holding over $1 trillion in assets. Python and AWS focused.
+            Independently shipped mobile apps to iOS and Android.
           </p>
         </section>
 
@@ -119,10 +119,10 @@ export default function ResumePage() {
                 <span className="text-xs text-gray-500">inqo.io</span>
               </div>
               <p className="text-sm leading-snug mt-0.5">
-                AI-powered daily 20 questions game. Built with Flutter, AWS, and Python.
-                Reached Top 200 in the iOS App Store Trivia category.
-                Automated infrastructure with CloudFormation. Reduced cloud costs by over 50%.
-                Launched on iOS and Android.
+                Needed an engaging way to bring AI-driven trivia to mobile users daily.
+                Built with Flutter, AWS, and Python. Reached Top 200 in the iOS App Store Trivia
+                category. Automated infrastructure with CloudFormation. Reduced cloud costs by
+                over 50%. Launched on iOS and Android.
               </p>
             </div>
             <div>
@@ -131,8 +131,9 @@ export default function ResumePage() {
                 <span className="text-xs text-gray-500">stegg.io</span>
               </div>
               <p className="text-sm leading-snug mt-0.5">
-                Cross-platform steganography app built with Flutter. Implements LSB and
-                Spread Spectrum techniques with encryption for secure message embedding in images.
+                Solving the problem of covert communication — lets users hide any message inside
+                any image. Built with Flutter using LSB and Spread Spectrum steganography with
+                encryption for data integrity. Launched on iOS and Android.
               </p>
             </div>
           </div>

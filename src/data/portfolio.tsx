@@ -50,16 +50,16 @@ export const careerTimeline = [
         impact: null,
       },
       {
-        text: "Building a multi-agent AI system using LangChain and AWS Bedrock to orchestrate agents that gather, synthesize, and analyze enterprise data.",
-        impact: "Reducing research turnaround time by up to 3 weeks through agent workflows",
+        text: "Built core components of a multi-agent AI system using LangChain and AWS Bedrock that orchestrates agents to gather, synthesize, and analyze enterprise data.",
+        impact: "Reduced research turnaround time by up to 3 weeks",
       },
       {
         text: "Implemented RAG pipelines using Pinecone and Neptune GraphRAG to provide grounded, context-aware responses from internal knowledge bases and document stores.",
         impact: null,
       },
       {
-        text: "Helping architect the agent orchestration layer with tool-use patterns, enabling agents to query internal APIs, parse documents, and chain reasoning steps.",
-        impact: "Answering complex business questions autonomously",
+        text: "Designed the agent orchestration layer with tool-use patterns, enabling agents to query internal APIs, parse documents, and chain reasoning steps.",
+        impact: "Autonomously answering complex business questions",
       },
       {
         text: "Shipped AI-powered call center bots that automated customer support workflows and reduced live-agent call volume.",
@@ -78,12 +78,12 @@ export const careerTimeline = [
     tags: ["Angular", "Spring Boot", "AWS", "Python", "Splunk"],
     responsibilities: [
       {
-        text: "Designed and developed web applications using Angular, Python Lambdas & Spring Boot for the backend.",
+        text: "Designed and developed web applications using Angular, Python Lambdas, and Spring Boot, serving Vanguard's $1T+ asset holder base.",
         impact: null,
       },
       {
-        text: "Migrated legacy mainframe data to AWS cloud infrastructure.",
-        impact: "Users holding over $1 trillion in assets",
+        text: "Migrated legacy mainframe data to AWS cloud infrastructure serving users holding over $1 trillion in assets.",
+        impact: null,
       },
       {
         text: "Modernized call center infrastructure, reducing agent call volume and lowering operational costs.",
@@ -110,7 +110,7 @@ export const careerTimeline = [
     tags: ["Angular", "REST APIs", "Responsive Design"],
     responsibilities: [
       {
-        text: "Developed a high-value transactions web application with enhanced security and reliability.",
+        text: "Developed a high-value transactions web application with enhanced security and reliability for Vanguard's institutional and retail clients.",
         impact: null,
       },
       {
@@ -167,7 +167,7 @@ export const skills = [
   },
   {
     category: "AI & Data",
-    items: ["Pinecone", "Neptune (GraphRAG)", "Bedrock", "LangChain"],
+    items: ["Pinecone", "Neptune (GraphRAG)", "Bedrock"],
   },
   {
     category: "Cloud & DevOps",
