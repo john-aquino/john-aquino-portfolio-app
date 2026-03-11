@@ -50,6 +50,17 @@ export default function ResumePage() {
           </p>
         </section>
 
+        {/* AI Systems */}
+        <section className="mb-5">
+          <h2 className="resume-section-title">AI Systems Experience</h2>
+          <div className="text-sm flex flex-wrap gap-x-8 gap-y-0.5">
+            <span>• Multi-agent orchestration</span>
+            <span>• Retrieval-augmented generation (RAG)</span>
+            <span>• Tool-use agents</span>
+            <span>• LLM reasoning chains</span>
+          </div>
+        </section>
+
         {/* Technical Skills */}
         <section className="mb-5">
           <h2 className="resume-section-title">Technical Skills</h2>
@@ -104,6 +115,7 @@ export default function ResumePage() {
               </div>
               <p className="text-sm leading-snug mt-0.5">
                 AI-powered daily 20 questions game. Built with Flutter, AWS, and Python.
+                Reached Top 200 in the iOS App Store Trivia category.
                 Automated infrastructure with CloudFormation. Reduced cloud costs by over 50%.
                 Launched on iOS and Android.
               </p>

@@ -20,9 +20,9 @@ export const projects = [
       { icon: <FaAngular key="angular" />, label: "Angular" },
       { icon: <FaDatabase key="database" />, label: "DynamoDB" },
     ],
-    highlights: ["50% cloud cost reduction", "iOS & Android", "AWS CloudFormation"],
+    highlights: ["Top 200 iOS Trivia", "50% cloud cost reduction", "iOS & Android", "AWS CloudFormation"],
     details:
-      "Architected and developed the full-stack infrastructure for Inqo, a daily AI-driven game app built with Flutter and AWS services. Automated infrastructure provisioning using AWS CloudFormation for rapid deployment and scaling. Launched on both iOS and Android platforms, ensuring a consistent user experience. Reduced cloud costs by over 50% through effective optimization and iterative Agile methodologies.",
+      "Architected and developed the full-stack infrastructure for Inqo, a daily AI-driven game app built with Flutter and AWS services. Reached the Top 200 in the iOS App Store Trivia category. Automated infrastructure provisioning using AWS CloudFormation for rapid deployment and scaling. Launched on both iOS and Android platforms, ensuring a consistent user experience. Reduced cloud costs by over 50% through effective optimization and iterative Agile methodologies.",
   },
   {
     name: "Stegg",
@@ -50,7 +50,7 @@ export const careerTimeline = [
         impact: null,
       },
       {
-        text: "Building a multi-agent AI system using LangChain and AWS Bedrock to orchestrate specialized agents that autonomously gather, synthesize, and analyze data.",
+        text: "Building a multi-agent AI system using LangChain and AWS Bedrock to orchestrate agents that gather, synthesize, and analyze enterprise data.",
         impact: "Reducing research turnaround time by up to 3 weeks through agent workflows",
       },
       {
@@ -62,7 +62,7 @@ export const careerTimeline = [
         impact: "Answering complex business questions autonomously",
       },
       {
-        text: "Shipped call center AI bots that streamline customer interactions and reduce live-agent call volume.",
+        text: "Shipped AI-powered call center bots that automated customer support workflows and reduced live-agent call volume.",
         impact: null,
       },
       {
@@ -159,7 +159,7 @@ export const education = [
 export const skills = [
   {
     category: "Primary Languages",
-    items: ["Python", "Java", "TypeScript/JavaScript", "Dart"],
+    items: ["Python (primary)", "Java", "TypeScript/JavaScript", "Dart"],
   },
   {
     category: "Frameworks & Libraries",
