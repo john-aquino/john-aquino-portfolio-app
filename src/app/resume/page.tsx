@@ -48,9 +48,10 @@ export default function ResumePage() {
         <section className="mb-5">
           <h2 className="resume-section-title">Summary</h2>
           <p className="text-sm leading-relaxed">
-            AI systems engineer with 6+ years of backend and cloud experience at Vanguard.
-            Currently building production LLM systems including multi-agent orchestration and RAG
-            pipelines using Python and AWS.
+            AI systems engineer with 6+ years at Vanguard building production backend and cloud
+            systems. Currently developing multi-agent orchestration, RAG pipelines, and LLM
+            infrastructure on AWS at enterprise scale. Python-focused. Independently shipped mobile
+            apps to iOS and Android.
           </p>
         </section>
 
