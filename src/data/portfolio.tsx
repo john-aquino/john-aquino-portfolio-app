@@ -50,7 +50,7 @@ export const careerTimeline = [
         impact: null,
       },
       {
-        text: "Built core components of a multi-agent AI system using LangChain and AWS Bedrock that orchestrates agents to gather, synthesize, and analyze enterprise data.",
+        text: "Built core components of a multi-agent AI system using LangChain and AWS Bedrock to orchestrate agents that gather, synthesize, and analyze enterprise data.",
         impact: "Reduced research turnaround time by up to 3 weeks",
       },
       {
@@ -158,12 +158,12 @@ export const skills = [
     items: ["Python (primary)", "Java", "TypeScript/JavaScript", "Dart"],
   },
   {
-    category: "Frameworks & Libraries",
-    items: ["LangChain", "Spring Boot", "Angular", "Next.js", "React", "Flutter"],
-  },
-  {
     category: "AI & Data",
     items: ["Pinecone", "Neptune (GraphRAG)", "Bedrock"],
+  },
+  {
+    category: "Frameworks & Libraries",
+    items: ["LangChain", "Spring Boot", "Angular", "Next.js", "React", "Flutter"],
   },
   {
     category: "Cloud & DevOps",

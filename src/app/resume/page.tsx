@@ -48,10 +48,9 @@ export default function ResumePage() {
         <section className="mb-5">
           <h2 className="resume-section-title">Summary</h2>
           <p className="text-sm leading-relaxed">
-            AI systems engineer specializing in production LLM architectures at enterprise scale.
-            6+ years at Vanguard building multi-agent orchestration, RAG pipelines, and cloud-native
-            infrastructure serving users holding over $1 trillion in assets. Python and AWS focused.
-            Independently shipped mobile apps to iOS and Android.
+            AI systems engineer with 6+ years of backend and cloud experience at Vanguard.
+            Currently building production LLM systems including multi-agent orchestration and RAG
+            pipelines using Python and AWS.
           </p>
         </section>
 
@@ -119,8 +118,8 @@ export default function ResumePage() {
                 <span className="text-xs text-gray-500">inqo.io</span>
               </div>
               <p className="text-sm leading-snug mt-0.5">
-                Needed an engaging way to bring AI-driven trivia to mobile users daily.
-                Built with Flutter, AWS, and Python. Reached Top 200 in the iOS App Store Trivia
+                AI-powered daily trivia game built with Flutter, AWS, and Python.
+                Reached Top 200 in the iOS App Store Trivia
                 category. Automated infrastructure with CloudFormation. Reduced cloud costs by
                 over 50%. Launched on iOS and Android.
               </p>
