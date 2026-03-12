@@ -14,6 +14,12 @@ export default function ResumePage() {
         >
           Save as PDF
         </button>
+        <a
+          href="/cover-letter"
+          className="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-colors text-sm font-medium"
+        >
+          Cover Letter
+        </a>
         <button
           type="button"
           onClick={() => window.history.back()}
