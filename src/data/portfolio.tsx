@@ -1,5 +1,4 @@
 import {
-  FaAngular,
   FaAws,
   FaDatabase,
   FaMobileAlt,
@@ -17,7 +16,6 @@ export const projects = [
       { icon: <SiFlutter key="flutter" />, label: "Flutter" },
       { icon: <FaAws key="aws" />, label: "AWS" },
       { icon: <FaPython key="python" />, label: "Python" },
-      { icon: <FaAngular key="angular" />, label: "Angular" },
       { icon: <FaDatabase key="database" />, label: "DynamoDB" },
     ],
     highlights: ["Top 200 iOS Trivia", "50% cloud cost reduction", "iOS & Android", "AWS CloudFormation"],

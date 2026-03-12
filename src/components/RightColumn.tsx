@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FaAngular, FaAws, FaDatabase, FaMobileAlt, FaPython } from 'react-icons/fa'; // Include additional icons as needed
+import { FaAws, FaDatabase, FaMobileAlt, FaPython } from 'react-icons/fa'; // Include additional icons as needed
 import { SiFlutter, SiSwift } from 'react-icons/si';
 
 const RightColumn = () => {
@@ -9,7 +9,7 @@ const RightColumn = () => {
       description: 'A unique daily 20 questions game.',
       image: '/inqo.webp',
       url: 'https://inqo.io',
-      techStack: [<SiFlutter key="flutter" />, <FaAws key="aws" />, <FaPython key="python" />, <FaAngular key="angular" />, <FaDatabase key="database" />],
+      techStack: [<SiFlutter key="flutter" />, <FaAws key="aws" />, <FaPython key="python" />, <FaDatabase key="database" />],
     },
     {
       name: 'Stegg',
