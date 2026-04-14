@@ -6,7 +6,7 @@ export default function ResumePage() {
   return (
     <>
       {/* Print button — hidden when printing */}
-      <div className="print:hidden fixed top-4 right-4 z-50 flex gap-3">
+      <div className="print:hidden fixed top-4 right-4 z-50 flex flex-col sm:flex-row gap-2">
         <button
           type="button"
           onClick={() => window.print()}
@@ -16,7 +16,7 @@ export default function ResumePage() {
         </button>
         <a
           href="/cover-letter"
-          className="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-colors text-sm font-medium"
+          className="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition-colors text-sm font-medium text-center"
         >
           Cover Letter
         </a>

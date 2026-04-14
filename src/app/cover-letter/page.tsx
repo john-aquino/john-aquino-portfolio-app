@@ -743,8 +743,10 @@ ${htmlBody}
     const link = document.createElement("a");
     link.href = url;
     link.download = `john-aquino-cover-letter-${new Date().toISOString().slice(0, 10)}.html`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function copyDraft() {

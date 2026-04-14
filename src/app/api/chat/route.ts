@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest } from "next/server";
 
+export const maxDuration = 60;
+
 const BASE_SYSTEM_PROMPT = `You are John Aquino's AI career assistant. You help John craft tailored cover letters and answer job-application-related questions on his behalf.
 
 ## About John
@@ -317,7 +319,7 @@ export async function POST(req: NextRequest) {
   };
 
   // SSE streaming tool-use loop: emit events as tools are called so the client updates in real-time
-  const MAX_TOOL_ROUNDS = 5;
+  const MAX_TOOL_ROUNDS = 3;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
