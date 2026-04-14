@@ -691,7 +691,84 @@ export default function CoverLetterPage() {
     });
   }
 
+  function triggerDownload(fullHtml: string, filename: string) {
+    // Use application/octet-stream so iOS Safari downloads the file
+    // rather than trying to display/navigate to it as text/html
+    const blob = new Blob([fullHtml], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function escHtml(s: string): string {
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function downloadDraft() {
+    const dateSlug = new Date().toISOString().slice(0, 10);
+
+    if (previewMode === "resume") {
+      if (!hasResumeContent) return;
+      const headline = escHtml((resumeData.headline || DEFAULT_HEADLINE).replace(/\*\*/g, ""));
+      const summary = escHtml(resumeData.summary || "");
+      const skillsHtml = resumeData.skills && resumeData.skills.length > 0
+        ? `<p style="margin:0">${resumeData.skills.map(escHtml).join(" · ")}</p>`
+        : baseSkills.map((g) => `<p style="margin:0 0 4px 0"><strong>${escHtml(g.category)}:</strong> ${g.items.map(escHtml).join(", ")}</p>`).join("");
+      const expHtml = resumeData.experience && resumeData.experience.length > 0
+        ? resumeData.experience.map((exp) => `
+<div style="margin-bottom:12px">
+  <strong>${escHtml(exp.role)}</strong><span style="color:#555"> — ${escHtml(exp.company)}</span>
+  <ul style="margin:4px 0 0 16px;padding:0">${exp.bullets.map((b) => `<li style="margin-bottom:2px">${escHtml(b)}</li>`).join("")}</ul>
+</div>`).join("")
+        : careerTimeline.map((r) => `
+<div style="margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between"><strong>${escHtml(r.position)}</strong><span style="color:#777;font-size:9pt">${escHtml(r.yearRange)}</span></div>
+  <span style="color:#555">${escHtml(r.company)}</span>
+  <ul style="margin:4px 0 0 16px;padding:0">${r.responsibilities.map((rr) => `<li style="margin-bottom:2px">${escHtml(rr.text)}${rr.impact ? ` — <span style="color:#666">${escHtml(rr.impact)}</span>` : ""}</li>`).join("")}</ul>
+</div>`).join("");
+      const highlightsHtml = resumeData.highlights && resumeData.highlights.length > 0
+        ? `<section style="margin-bottom:20px">
+<h2 style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px">Role-Specific Highlights</h2>
+<ul style="margin:0 0 0 16px;padding:0">${resumeData.highlights.map((h) => `<li style="margin-bottom:2px;font-size:10pt">${escHtml(h)}</li>`).join("")}</ul>
+</section>` : "";
+      const educationHtml = education.map((edu) => `<div style="display:flex;justify-content:space-between"><span><strong>${escHtml(edu.degree)}</strong> — ${escHtml(edu.school)}</span><span style="color:#777;font-size:9pt">${escHtml(edu.years)}</span></div>`).join("");
+      const certHtml = certifications.map((c) => `<li><strong>${escHtml(c.name)}</strong> — <span style="color:#555">${escHtml(c.date)}</span></li>`).join("");
+
+      const fullHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Resume - John Aquino</title>
+<style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#1a1a1a;font-size:10pt;line-height:1.5}
+header{text-align:center;border-bottom:1px solid #ccc;padding-bottom:12px;margin-bottom:16px}
+h1{margin:0;font-size:20pt}h2{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin:0 0 8px 0}
+section{margin-bottom:16px}ul{margin:4px 0 0 16px;padding:0}li{margin-bottom:2px}
+</style></head><body>
+<header>
+<h1>John Aquino</h1>
+<p style="margin:4px 0 0;color:#555;font-size:9pt">${headline}</p>
+<p style="margin:2px 0 0;color:#777;font-size:9pt">github.com/john-aquino · linkedin.com/in/john-a-aquino · johnaquino.com</p>
+<p style="margin:2px 0 0;color:#777;font-size:9pt">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</p>
+</header>
+${summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : ""}
+<section><h2>Technical Skills</h2>${skillsHtml}</section>
+<section><h2>Experience</h2>${expHtml}</section>
+${highlightsHtml}
+<section><h2>Education</h2>${educationHtml}</section>
+<section><h2>Certifications</h2><ul>${certHtml}</ul></section>
+</body></html>`;
+
+      triggerDownload(fullHtml, `john-aquino-resume-${dateSlug}.html`);
+      return;
+    }
+
     if (!draft.trim()) return;
     const exportDraft = normalizeLetterBody(draft);
     // Convert markdown bold/italic to HTML and preserve paragraphs
@@ -709,15 +786,15 @@ export default function CoverLetterPage() {
       .join("\n");
 
     const dateStr = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    const headline = coverLetterData.headline || DEFAULT_HEADLINE;
-    const role = coverLetterData.role || "";
-    const company = coverLetterData.company || "";
+    const headline = escHtml(coverLetterData.headline || DEFAULT_HEADLINE);
+    const role = escHtml(coverLetterData.role || "");
+    const company = escHtml(coverLetterData.company || "");
 
     const pills: string[] = [];
     if (company) pills.push(`<span style="display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:3px 10px;font-size:9pt">Company: ${company}</span>`);
     if (role) pills.push(`<span style="display:inline-block;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:9pt">Role: ${role}</span>`);
-    if (coverLetterData.hiringManager) pills.push(`<span style="display:inline-block;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:9pt">Hiring Manager: ${coverLetterData.hiringManager}</span>`);
-    if (coverLetterData.tone) pills.push(`<span style="display:inline-block;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:9pt">Tone: ${coverLetterData.tone}</span>`);
+    if (coverLetterData.hiringManager) pills.push(`<span style="display:inline-block;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:9pt">Hiring Manager: ${escHtml(coverLetterData.hiringManager)}</span>`);
+    if (coverLetterData.tone) pills.push(`<span style="display:inline-block;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;border-radius:999px;padding:3px 10px;font-size:9pt">Tone: ${escHtml(coverLetterData.tone)}</span>`);
     const pillsHtml = pills.length ? `<div style="margin-bottom:16px">${pills.join(" ")}</div>` : "";
 
     const fullHtml = `<!DOCTYPE html>
@@ -731,22 +808,14 @@ h1{margin:0;font-size:20pt}
 <header>
 <h1>John Aquino</h1>
 <div class="sub">${headline}</div>
-<div class="sub">${process.env.NEXT_PUBLIC_RESUME_EMAIL} · ${process.env.NEXT_PUBLIC_RESUME_PHONE}</div>
+<div class="sub">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</div>
 </header>
 <div class="date">${dateStr}</div>
 ${pillsHtml}
 ${htmlBody}
 </body></html>`;
 
-    const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `john-aquino-cover-letter-${new Date().toISOString().slice(0, 10)}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    triggerDownload(fullHtml, `john-aquino-cover-letter-${dateSlug}.html`);
   }
 
   function copyDraft() {
@@ -756,6 +825,13 @@ ${htmlBody}
       setTimeout(() => setDraftCopied(false), 1500);
     });
   }
+
+  const hasResumeContent = !!(
+    resumeData.summary ||
+    (resumeData.skills && resumeData.skills.length > 0) ||
+    (resumeData.experience && resumeData.experience.length > 0) ||
+    (resumeData.highlights && resumeData.highlights.length > 0)
+  );
 
   const isThinking =
     streaming;
@@ -1366,14 +1442,14 @@ ${htmlBody}
               </button>
               <button
                 onClick={downloadDraft}
-                disabled={!draft.trim()}
+                disabled={previewMode === "cover-letter" ? !draft.trim() : !hasResumeContent}
                 className="text-xs rounded-lg border border-gray-300 bg-white px-3 py-2 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Download
               </button>
               <button
                 onClick={() => window.print()}
-                disabled={!draft.trim()}
+                disabled={previewMode === "cover-letter" ? !draft.trim() : !hasResumeContent}
                 className="text-xs rounded-lg bg-blue-600 text-white px-3 py-2 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 PDF
