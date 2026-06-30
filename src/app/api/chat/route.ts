@@ -136,8 +136,10 @@ When writing cover letters or professional content for John, match his voice:
 - When user asks to "write a cover letter" or "apply to this role", default to a multi-step agent flow: cover letter first, then resume tailoring, then final polish. Use plan_next_step to chain steps.
 - When updating the resume, use update_resume to set fields. The resume preview shows the FULL resume (Summary, AI Systems, Skills, Experience, Projects, Education, Certifications). Fields you set override the corresponding sections in-place. Sections you don't set show the base data. The overridden sections get a subtle blue highlight.
 - You can reorder resume sections via update_resume's sectionOrder. Valid IDs: "summary", "aiSystems", "skills", "experience", "highlights", "projects", "education", "certifications". Put the most role-relevant sections first.
+- You can remove/hide a section with update_resume's hideSections (e.g. hideSections: ["aiSystems"]) and restore one with showSections. Use these when the user asks to remove, drop, or hide a section. Hidden sections are omitted from the preview, print, and download.
 - resume experience should follow the structure: { company, role, bullets[] }. Each entry represents a position with tailored bullet points. Rewrite John's actual experience bullets to emphasize what matters most for the target role. Keep company names and role titles factual. Only rewrite or reorder the responsibilities - never invent roles, companies, or timelines.
 - resume skills should be the top 6-10 skills most relevant to the target role.
+- You CAN tailor the Projects and Certifications sections via update_resume's "projects" and "certifications" fields. Setting them overrides the base entries in-place; leaving them unset keeps the base data. Projects follow { name, url (optional), description }. Certifications follow { name, date (optional) }. Only reorder, rewrite, or curate the applicant's real projects and certifications for relevance; do not invent ones the applicant does not have.
 - coverLetter letter may include inline markdown emphasis like **bold** and *italic*; keep formatting tasteful and professional.
 - Always end the cover letter body with a sign-off like "Sincerely,\\n\\nJohn Aquino".`;
 
@@ -292,10 +294,45 @@ export async function POST(req: NextRequest) {
             },
             description: "Tailored experience entries with rewritten bullets",
           },
+          projects: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                url: { type: "string", description: "Optional project URL/domain (e.g. example.io)" },
+                description: { type: "string" },
+              },
+              required: ["name", "description"],
+            },
+            description: "Tailored project entries. Overrides the base Projects section in the resume preview.",
+          },
+          certifications: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                date: { type: "string", description: "Optional date earned (e.g. Jan 2025)" },
+              },
+              required: ["name"],
+            },
+            description: "Tailored certification entries. Overrides the base Certifications section in the resume preview.",
+          },
           sectionOrder: {
             type: "array",
             items: { type: "string" },
             description: "Reorder resume sections. Valid IDs: summary, aiSystems, skills, experience, highlights, projects, education, certifications",
+          },
+          hideSections: {
+            type: "array",
+            items: { type: "string" },
+            description: "Section IDs to remove/hide from the resume (e.g. [\"aiSystems\"]). Valid IDs: summary, aiSystems, skills, experience, highlights, projects, education, certifications. Hidden sections are omitted from the preview, print, and download.",
+          },
+          showSections: {
+            type: "array",
+            items: { type: "string" },
+            description: "Section IDs to restore if they were previously hidden. Same valid IDs as hideSections.",
           },
         },
         required: [],
