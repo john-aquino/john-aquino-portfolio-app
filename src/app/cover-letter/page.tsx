@@ -53,6 +53,37 @@ interface ChatApiResponse {
 const DEFAULT_HEADLINE = "AI Systems Engineer | LLM Architectures | Cloud-Native Applications";
 const DEFAULT_NAME = "John Aquino";
 const LS_NAME = "cl_name";
+const LS_CONTACT = "cl_contact";
+
+interface ContactInfo {
+  email: string;
+  phone: string;
+  github: string;
+  linkedin: string;
+  website: string;
+}
+
+function defaultContact(): ContactInfo {
+  return {
+    email: process.env.NEXT_PUBLIC_RESUME_EMAIL || "",
+    phone: process.env.NEXT_PUBLIC_RESUME_PHONE || "",
+    github: "github.com/john-aquino",
+    linkedin: "linkedin.com/in/john-a-aquino",
+    website: "johnaquino.com",
+  };
+}
+
+const CONTACT_FIELDS: { key: keyof ContactInfo; label: string }[] = [
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "github", label: "GitHub" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "website", label: "Website" },
+];
+
+function joinDot(parts: (string | undefined)[]) {
+  return parts.map((p) => (p || "").trim()).filter(Boolean).join(" · ");
+}
 
 function buildSignoff(name: string) {
   return `Sincerely,\n\n${name}`;
@@ -195,6 +226,8 @@ function renderLetterParagraphs(letter: string) {
 export default function CoverLetterPage() {
   const [authed, setAuthed] = useState(false);
   const [candidateName, setCandidateName] = useState(DEFAULT_NAME);
+  const [contact, setContact] = useState<ContactInfo>(defaultContact);
+  const [showContactFields, setShowContactFields] = useState(false);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -442,12 +475,25 @@ export default function CoverLetterPage() {
     if (saved) setAuthed(true);
     const savedName = localStorage.getItem(LS_NAME);
     if (savedName) setCandidateName(savedName);
+    const savedContact = localStorage.getItem(LS_CONTACT);
+    if (savedContact) {
+      try {
+        setContact({ ...defaultContact(), ...JSON.parse(savedContact) });
+      } catch {
+        // Ignore malformed stored contact info; fall back to defaults.
+      }
+    }
   }, []);
 
   // Persist the applicant name across sessions
   useEffect(() => {
     localStorage.setItem(LS_NAME, candidateName);
   }, [candidateName]);
+
+  // Persist the contact details across sessions
+  useEffect(() => {
+    localStorage.setItem(LS_CONTACT, JSON.stringify(contact));
+  }, [contact]);
 
   // Scroll to bottom on new tokens
   useEffect(() => {
@@ -739,6 +785,8 @@ export default function CoverLetterPage() {
     const nameSlug =
       candidateName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "candidate";
     const docName = escHtml(candidateName);
+    const linksLine = escHtml(joinDot([contact.github, contact.linkedin, contact.website]));
+    const contactLine = escHtml(joinDot([contact.email, contact.phone]));
 
     if (previewMode === "resume") {
       if (!hasResumeContent) return;
@@ -777,8 +825,8 @@ section{margin-bottom:16px}ul{margin:4px 0 0 16px;padding:0}li{margin-bottom:2px
 <header>
 <h1>${docName}</h1>
 <p style="margin:4px 0 0;color:#555;font-size:9pt">${headline}</p>
-<p style="margin:2px 0 0;color:#777;font-size:9pt">github.com/john-aquino · linkedin.com/in/john-a-aquino · johnaquino.com</p>
-<p style="margin:2px 0 0;color:#777;font-size:9pt">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</p>
+<p style="margin:2px 0 0;color:#777;font-size:9pt">${linksLine}</p>
+<p style="margin:2px 0 0;color:#777;font-size:9pt">${contactLine}</p>
 </header>
 ${summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : ""}
 <section><h2>Technical Skills</h2>${skillsHtml}</section>
@@ -831,7 +879,7 @@ h1{margin:0;font-size:20pt}
 <header>
 <h1>${docName}</h1>
 <div class="sub">${headline}</div>
-<div class="sub">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</div>
+<div class="sub">${contactLine}</div>
 </header>
 <div class="date">${dateStr}</div>
 ${pillsHtml}
@@ -1124,9 +1172,18 @@ ${htmlBody}
             </div>
 
             <div className="mb-3">
-              <label className="block text-[11px] font-medium text-gray-500 mb-1">
-                Name on documents
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-medium text-gray-500">
+                  Name on documents
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowContactFields((v) => !v)}
+                  className="text-[11px] text-blue-600 hover:text-blue-700 cursor-pointer"
+                >
+                  {showContactFields ? "Hide contact details" : "Edit contact details"}
+                </button>
+              </div>
               <input
                 type="text"
                 value={candidateName}
@@ -1134,6 +1191,26 @@ ${htmlBody}
                 placeholder="Applicant name"
                 className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              {showContactFields && (
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {CONTACT_FIELDS.map((f) => (
+                    <div key={f.key}>
+                      <label className="block text-[10px] font-medium text-gray-400 mb-0.5">
+                        {f.label}
+                      </label>
+                      <input
+                        type="text"
+                        value={contact[f.key]}
+                        onChange={(e) =>
+                          setContact((prev) => ({ ...prev, [f.key]: e.target.value }))
+                        }
+                        placeholder={f.label}
+                        className="w-full border border-gray-300 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {(coverLetterData.company ||
@@ -1174,7 +1251,7 @@ ${htmlBody}
                         {renderInlineFormatting(coverLetterData.headline || DEFAULT_HEADLINE)}
                       </p>
                       <p className="text-[11px] text-gray-500 mt-1">
-                        {process.env.NEXT_PUBLIC_RESUME_EMAIL} {" · "} {process.env.NEXT_PUBLIC_RESUME_PHONE}
+                        {joinDot([contact.email, contact.phone])}
                       </p>
                     </header>
                     <div className="text-xs text-gray-600 mb-4 space-y-1">
@@ -1212,14 +1289,10 @@ ${htmlBody}
                         {renderInlineFormatting(resumeData.headline || DEFAULT_HEADLINE)}
                       </p>
                       <p className="text-[11px] text-gray-500 mt-1">
-                        <span>github.com/john-aquino</span>
-                        {" · "}
-                        <span>linkedin.com/in/john-a-aquino</span>
-                        {" · "}
-                        <span>johnaquino.com</span>
+                        {joinDot([contact.github, contact.linkedin, contact.website])}
                       </p>
                       <p className="text-[11px] text-gray-500 mt-0.5">
-                        {process.env.NEXT_PUBLIC_RESUME_EMAIL} {" · "} {process.env.NEXT_PUBLIC_RESUME_PHONE}
+                        {joinDot([contact.email, contact.phone])}
                       </p>
                     </header>
 
@@ -1543,12 +1616,10 @@ ${htmlBody}
               )}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              github.com/john-aquino · linkedin.com/in/john-a-aquino · johnaquino.com
+              {joinDot([contact.github, contact.linkedin, contact.website])}
             </p>
             <p className="text-xs text-gray-500 mt-0.5">
-              {process.env.NEXT_PUBLIC_RESUME_EMAIL}
-              {" · "}
-              {process.env.NEXT_PUBLIC_RESUME_PHONE}
+              {joinDot([contact.email, contact.phone])}
             </p>
           </header>
 
