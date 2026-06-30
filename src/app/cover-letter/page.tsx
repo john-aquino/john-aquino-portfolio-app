@@ -51,7 +51,16 @@ interface ChatApiResponse {
 }
 
 const DEFAULT_HEADLINE = "AI Systems Engineer | LLM Architectures | Cloud-Native Applications";
-const DEFAULT_COVER_LETTER_SIGNOFF = "Sincerely,\n\nJohn Aquino";
+const DEFAULT_NAME = "John Aquino";
+const LS_NAME = "cl_name";
+
+function buildSignoff(name: string) {
+  return `Sincerely,\n\n${name}`;
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // ── Conversation persistence ────────────────────────────────────
 type ResumeSection = "summary" | "aiSystems" | "skills" | "experience" | "highlights" | "projects" | "education" | "certifications";
@@ -185,6 +194,7 @@ function renderLetterParagraphs(letter: string) {
 
 export default function CoverLetterPage() {
   const [authed, setAuthed] = useState(false);
+  const [candidateName, setCandidateName] = useState(DEFAULT_NAME);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -281,16 +291,18 @@ export default function CoverLetterPage() {
 
   function normalizeSignOff(text: string) {
     // Remove any trailing sign-off variants and add a single canonical one.
+    const nameEsc = escapeRegex(candidateName);
     const withoutTrailingClosings = text
-      .replace(/\n*(?:sincerely|best regards|regards|respectfully|thank you),?\s*\n*john aquino\s*$/gi, "")
-      .replace(/\n*(?:sincerely|best regards|regards|respectfully|thank you),?\s*john aquino\s*$/gi, "")
+      .replace(new RegExp(`\\n*(?:sincerely|best regards|regards|respectfully|thank you),?\\s*\\n*${nameEsc}\\s*$`, "gi"), "")
+      .replace(new RegExp(`\\n*(?:sincerely|best regards|regards|respectfully|thank you),?\\s*${nameEsc}\\s*$`, "gi"), "")
       .trim();
-    if (!withoutTrailingClosings) return DEFAULT_COVER_LETTER_SIGNOFF;
-    return `${withoutTrailingClosings}\n\n${DEFAULT_COVER_LETTER_SIGNOFF}`;
+    if (!withoutTrailingClosings) return buildSignoff(candidateName);
+    return `${withoutTrailingClosings}\n\n${buildSignoff(candidateName)}`;
   }
 
   function hasSignOff(text: string) {
-    return /(?:sincerely|best regards|regards|respectfully|thank you)[,\s]*\n+\s*john aquino\s*$/i.test(
+    const nameEsc = escapeRegex(candidateName);
+    return new RegExp(`(?:sincerely|best regards|regards|respectfully|thank you)[,\\s]*\\n+\\s*${nameEsc}\\s*$`, "i").test(
       text.trim()
     );
   }
@@ -428,7 +440,14 @@ export default function CoverLetterPage() {
   useEffect(() => {
     const saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) setAuthed(true);
+    const savedName = localStorage.getItem(LS_NAME);
+    if (savedName) setCandidateName(savedName);
   }, []);
+
+  // Persist the applicant name across sessions
+  useEffect(() => {
+    localStorage.setItem(LS_NAME, candidateName);
+  }, [candidateName]);
 
   // Scroll to bottom on new tokens
   useEffect(() => {
@@ -447,6 +466,7 @@ export default function CoverLetterPage() {
       },
       body: JSON.stringify({
         messages: [{ role: "user", content: "hi" }],
+        name: candidateName,
       }),
     });
     if (res.status === 401) {
@@ -561,7 +581,7 @@ export default function CoverLetterPage() {
           "Content-Type": "application/json",
           "x-cover-password": pw,
         },
-        body: JSON.stringify({ messages: apiMessagesRef.current }),
+        body: JSON.stringify({ messages: apiMessagesRef.current, name: candidateName }),
       });
 
       if (res.status === 401) { logout(); return; }
@@ -716,6 +736,9 @@ export default function CoverLetterPage() {
 
   function downloadDraft() {
     const dateSlug = new Date().toISOString().slice(0, 10);
+    const nameSlug =
+      candidateName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "candidate";
+    const docName = escHtml(candidateName);
 
     if (previewMode === "resume") {
       if (!hasResumeContent) return;
@@ -745,14 +768,14 @@ export default function CoverLetterPage() {
       const certHtml = certifications.map((c) => `<li><strong>${escHtml(c.name)}</strong> — <span style="color:#555">${escHtml(c.date)}</span></li>`).join("");
 
       const fullHtml = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Resume - John Aquino</title>
+<html><head><meta charset="utf-8"><title>Resume - ${docName}</title>
 <style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#1a1a1a;font-size:10pt;line-height:1.5}
 header{text-align:center;border-bottom:1px solid #ccc;padding-bottom:12px;margin-bottom:16px}
 h1{margin:0;font-size:20pt}h2{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin:0 0 8px 0}
 section{margin-bottom:16px}ul{margin:4px 0 0 16px;padding:0}li{margin-bottom:2px}
 </style></head><body>
 <header>
-<h1>John Aquino</h1>
+<h1>${docName}</h1>
 <p style="margin:4px 0 0;color:#555;font-size:9pt">${headline}</p>
 <p style="margin:2px 0 0;color:#777;font-size:9pt">github.com/john-aquino · linkedin.com/in/john-a-aquino · johnaquino.com</p>
 <p style="margin:2px 0 0;color:#777;font-size:9pt">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</p>
@@ -765,7 +788,7 @@ ${highlightsHtml}
 <section><h2>Certifications</h2><ul>${certHtml}</ul></section>
 </body></html>`;
 
-      triggerDownload(fullHtml, `john-aquino-resume-${dateSlug}.html`);
+      triggerDownload(fullHtml, `${nameSlug}-resume-${dateSlug}.html`);
       return;
     }
 
@@ -798,7 +821,7 @@ ${highlightsHtml}
     const pillsHtml = pills.length ? `<div style="margin-bottom:16px">${pills.join(" ")}</div>` : "";
 
     const fullHtml = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Cover Letter - John Aquino</title>
+<html><head><meta charset="utf-8"><title>Cover Letter - ${docName}</title>
 <style>body{font-family:Georgia,serif;max-width:680px;margin:40px auto;color:#1a1a1a;font-size:11pt;line-height:1.6}
 header{text-align:center;border-bottom:1px solid #ccc;padding-bottom:16px;margin-bottom:20px}
 h1{margin:0;font-size:20pt}
@@ -806,7 +829,7 @@ h1{margin:0;font-size:20pt}
 .date{font-size:10pt;color:#444;margin-bottom:16px}
 </style></head><body>
 <header>
-<h1>John Aquino</h1>
+<h1>${docName}</h1>
 <div class="sub">${headline}</div>
 <div class="sub">${escHtml(process.env.NEXT_PUBLIC_RESUME_EMAIL || "")} · ${escHtml(process.env.NEXT_PUBLIC_RESUME_PHONE || "")}</div>
 </header>
@@ -815,7 +838,7 @@ ${pillsHtml}
 ${htmlBody}
 </body></html>`;
 
-    triggerDownload(fullHtml, `john-aquino-cover-letter-${dateSlug}.html`);
+    triggerDownload(fullHtml, `${nameSlug}-cover-letter-${dateSlug}.html`);
   }
 
   function copyDraft() {
@@ -1100,6 +1123,19 @@ ${htmlBody}
               </span>
             </div>
 
+            <div className="mb-3">
+              <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                Name on documents
+              </label>
+              <input
+                type="text"
+                value={candidateName}
+                onChange={(e) => setCandidateName(e.target.value)}
+                placeholder="Applicant name"
+                className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
             {(coverLetterData.company ||
               coverLetterData.role ||
               coverLetterData.hiringManager ||
@@ -1133,7 +1169,7 @@ ${htmlBody}
                 {previewMode === "cover-letter" ? (
                   <>
                     <header className="text-center border-b border-gray-200 pb-3 mb-4">
-                      <h3 className="text-lg font-bold tracking-tight text-gray-900">John Aquino</h3>
+                      <h3 className="text-lg font-bold tracking-tight text-gray-900">{candidateName || DEFAULT_NAME}</h3>
                       <p className="text-xs text-gray-600 mt-1">
                         {renderInlineFormatting(coverLetterData.headline || DEFAULT_HEADLINE)}
                       </p>
@@ -1171,7 +1207,7 @@ ${htmlBody}
                   <>
                     {/* ── Full Resume Preview ─────────────────────── */}
                     <header className="text-center border-b border-gray-200 pb-3 mb-4">
-                      <h3 className="text-lg font-bold tracking-tight text-gray-900">John Aquino</h3>
+                      <h3 className="text-lg font-bold tracking-tight text-gray-900">{candidateName || DEFAULT_NAME}</h3>
                       <p className="text-xs text-gray-600 mt-1">
                         {renderInlineFormatting(resumeData.headline || DEFAULT_HEADLINE)}
                       </p>
@@ -1499,7 +1535,7 @@ ${htmlBody}
       <div className="hidden print:block">
         <div className="resume-page max-w-[8.5in] mx-auto bg-white text-gray-900 px-10 py-8 print:px-0 print:py-0 print:max-w-none min-h-screen">
           <header className="text-center border-b border-gray-300 pb-4 mb-5">
-            <h1 className="text-3xl font-bold tracking-tight">John Aquino</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{candidateName || DEFAULT_NAME}</h1>
             <p className="text-sm text-gray-600 mt-1">
               {renderInlineFormatting(
                 (previewMode === "cover-letter" ? coverLetterData.headline : resumeData.headline)?.trim() ||
