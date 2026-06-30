@@ -218,9 +218,13 @@ export async function POST(req: NextRequest) {
   }
 
   let messages: Anthropic.MessageParam[];
+  let applicantName = "John Aquino";
   try {
     const body = await req.json();
     messages = body.messages;
+    if (typeof body.name === "string" && body.name.trim()) {
+      applicantName = body.name.trim().replace(/[—–]/g, " - ").slice(0, 80);
+    }
     if (!Array.isArray(messages) || messages.length === 0) {
       console.warn(`[cover-chat:${requestId}] Bad request: missing messages array`);
       return new Response("Bad request", { status: 400 });
@@ -231,7 +235,8 @@ export async function POST(req: NextRequest) {
   }
 
   const workspaceContext = await buildWorkspaceContext();
-  const systemPrompt = `${BASE_SYSTEM_PROMPT}\n\n## Live Workspace Context\n\nUse this up-to-date source of truth from the portfolio codebase for tailoring and factual grounding:\n\n${workspaceContext}`;
+  const nameOverride = `\n\n## Applicant Name (override)\n\nThe applicant's name is "${applicantName}". Refer to the applicant by this name, and sign every cover letter as "Sincerely,\n\n${applicantName}". Do not use "John Aquino" unless that is the applicant's name.`;
+  const systemPrompt = `${BASE_SYSTEM_PROMPT}\n\n## Live Workspace Context\n\nUse this up-to-date source of truth from the portfolio codebase for tailoring and factual grounding:\n\n${workspaceContext}${nameOverride}`;
 
   console.info(
     `[cover-chat:${requestId}] Start: messages=${messages.length}, contextChars=${workspaceContext.length}`
