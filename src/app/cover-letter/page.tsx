@@ -31,6 +31,8 @@ interface ResumeData {
   highlights?: string[];
   skills?: string[];
   experience?: { company: string; role: string; bullets: string[] }[];
+  projects?: { name: string; url?: string; description: string }[];
+  certifications?: { name: string; date?: string }[];
 }
 
 interface AgentDirective {
@@ -45,6 +47,8 @@ interface ChatApiResponse {
   resume?: Partial<ResumeData> & {
     skills?: string[];
     experience?: { company: string; role: string; bullets: string[] }[];
+    projects?: { name: string; url?: string; description: string }[];
+    certifications?: { name: string; date?: string }[];
     sectionOrder?: string[];
   };
   agent?: AgentDirective;
@@ -600,6 +604,23 @@ export default function CoverLetterPage() {
                 : [],
             }))
           : prev.experience;
+        const mergedProjects = Array.isArray(nextResume.projects)
+          ? nextResume.projects
+              .map((p) => ({
+                name: sanitizeNoEmDash(String(p.name || "")),
+                url: p.url ? sanitizeNoEmDash(String(p.url)) : undefined,
+                description: sanitizeNoEmDash(String(p.description || "")),
+              }))
+              .filter((p) => p.name || p.description)
+          : prev.projects;
+        const mergedCertifications = Array.isArray(nextResume.certifications)
+          ? nextResume.certifications
+              .map((c) => ({
+                name: sanitizeNoEmDash(String(c.name || "")),
+                date: c.date ? sanitizeNoEmDash(String(c.date)) : undefined,
+              }))
+              .filter((c) => c.name)
+          : prev.certifications;
         return {
           ...prev,
           ...nextResume,
@@ -608,6 +629,8 @@ export default function CoverLetterPage() {
           highlights: mergedHighlights,
           skills: mergedSkills,
           experience: mergedExperience,
+          projects: mergedProjects,
+          certifications: mergedCertifications,
         };
       });
       setPreviewMode("resume");
@@ -813,7 +836,21 @@ export default function CoverLetterPage() {
 <ul style="margin:0 0 0 16px;padding:0">${resumeData.highlights.map((h) => `<li style="margin-bottom:2px;font-size:10pt">${escHtml(h)}</li>`).join("")}</ul>
 </section>` : "";
       const educationHtml = education.map((edu) => `<div style="display:flex;justify-content:space-between"><span><strong>${escHtml(edu.degree)}</strong> — ${escHtml(edu.school)}</span><span style="color:#777;font-size:9pt">${escHtml(edu.years)}</span></div>`).join("");
-      const certHtml = certifications.map((c) => `<li><strong>${escHtml(c.name)}</strong> — <span style="color:#555">${escHtml(c.date)}</span></li>`).join("");
+      const projectsSource = resumeData.projects && resumeData.projects.length > 0
+        ? resumeData.projects
+        : [
+            { name: "Inqo", url: "inqo.io", description: "AI-powered daily trivia game built with Flutter, AWS, and Python. Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android." },
+            { name: "Stegg", url: "stegg.io", description: "Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS." },
+          ];
+      const projectsHtml = projectsSource.map((p) => `
+<div style="margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between"><strong>${escHtml(p.name)}</strong>${p.url ? `<span style="color:#777;font-size:9pt">${escHtml(p.url)}</span>` : ""}</div>
+  <p style="margin:2px 0 0">${escHtml(p.description)}</p>
+</div>`).join("");
+      const certSource = resumeData.certifications && resumeData.certifications.length > 0
+        ? resumeData.certifications
+        : certifications;
+      const certHtml = certSource.map((c) => `<li><strong>${escHtml(c.name)}</strong>${c.date ? ` - <span style="color:#555">${escHtml(c.date)}</span>` : ""}</li>`).join("");
 
       const fullHtml = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Resume - ${docName}</title>
@@ -832,6 +869,7 @@ ${summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-hei
 <section><h2>Technical Skills</h2>${skillsHtml}</section>
 <section><h2>Experience</h2>${expHtml}</section>
 ${highlightsHtml}
+<section><h2>Projects</h2>${projectsHtml}</section>
 <section><h2>Education</h2>${educationHtml}</section>
 <section><h2>Certifications</h2><ul>${certHtml}</ul></section>
 </body></html>`;
@@ -1318,6 +1356,8 @@ ${htmlBody}
                         if (key === "skills") return !!(resumeData.skills && resumeData.skills.length > 0);
                         if (key === "experience") return !!(resumeData.experience && resumeData.experience.length > 0);
                         if (key === "highlights") return !!(resumeData.highlights && resumeData.highlights.length > 0);
+                        if (key === "projects") return !!(resumeData.projects && resumeData.projects.length > 0);
+                        if (key === "certifications") return !!(resumeData.certifications && resumeData.certifications.length > 0);
                         return false;
                       };
                       const editRing = edited(sectionId) ? "ring-1 ring-blue-200 bg-blue-50/30 rounded-lg p-2 -mx-2" : "";
@@ -1444,32 +1484,46 @@ ${htmlBody}
 
                         case "projects":
                           return (
-                            <section key={sectionId} className="group/sec mb-4">
+                            <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
                                 <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Projects</h4>
                                 {moveButtons}
                               </div>
-                              <div className="space-y-2">
-                                <div>
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="font-semibold text-xs">Inqo</span>
-                                    <span className="text-[10px] text-gray-500">inqo.io</span>
-                                  </div>
-                                  <p className="text-xs leading-snug mt-0.5 text-gray-800">
-                                    AI-powered daily trivia game built with Flutter, AWS, and Python.
-                                    Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
-                                  </p>
+                              {resumeData.projects && resumeData.projects.length > 0 ? (
+                                <div className="space-y-2">
+                                  {resumeData.projects.map((proj, idx) => (
+                                    <div key={idx}>
+                                      <div className="flex justify-between items-baseline">
+                                        <span className="font-semibold text-xs">{proj.name}</span>
+                                        {proj.url && <span className="text-[10px] text-gray-500">{proj.url}</span>}
+                                      </div>
+                                      <p className="text-xs leading-snug mt-0.5 text-gray-800">{renderInlineFormatting(proj.description)}</p>
+                                    </div>
+                                  ))}
                                 </div>
-                                <div>
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="font-semibold text-xs">Stegg</span>
-                                    <span className="text-[10px] text-gray-500">stegg.io</span>
+                              ) : (
+                                <div className="space-y-2">
+                                  <div>
+                                    <div className="flex justify-between items-baseline">
+                                      <span className="font-semibold text-xs">Inqo</span>
+                                      <span className="text-[10px] text-gray-500">inqo.io</span>
+                                    </div>
+                                    <p className="text-xs leading-snug mt-0.5 text-gray-800">
+                                      AI-powered daily trivia game built with Flutter, AWS, and Python.
+                                      Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
+                                    </p>
                                   </div>
-                                  <p className="text-xs leading-snug mt-0.5 text-gray-800">
-                                    Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
-                                  </p>
+                                  <div>
+                                    <div className="flex justify-between items-baseline">
+                                      <span className="font-semibold text-xs">Stegg</span>
+                                      <span className="text-[10px] text-gray-500">stegg.io</span>
+                                    </div>
+                                    <p className="text-xs leading-snug mt-0.5 text-gray-800">
+                                      Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
+                              )}
                             </section>
                           );
 
@@ -1494,16 +1548,19 @@ ${htmlBody}
 
                         case "certifications":
                           return (
-                            <section key={sectionId} className="group/sec mb-4">
+                            <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
                                 <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Certifications</h4>
                                 {moveButtons}
                               </div>
                               <ul className="text-xs space-y-0.5 text-gray-800">
-                                {certifications.map((cert) => (
-                                  <li key={cert.name}>
+                                {(resumeData.certifications && resumeData.certifications.length > 0
+                                  ? resumeData.certifications
+                                  : certifications
+                                ).map((cert, idx) => (
+                                  <li key={idx}>
                                     <span className="font-semibold">{cert.name}</span>
-                                    <span className="text-gray-500"> - {cert.date}</span>
+                                    {cert.date && <span className="text-gray-500"> - {cert.date}</span>}
                                   </li>
                                 ))}
                               </ul>
@@ -1722,26 +1779,40 @@ ${htmlBody}
 
               <section className="mb-5">
                 <h2 className="resume-section-title">Projects</h2>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-baseline">
-                      <span className="font-semibold text-sm">Inqo</span>
-                      <span className="text-xs text-gray-500">inqo.io</span>
-                    </div>
-                    <p className="text-sm leading-snug mt-0.5">
-                      AI-powered daily trivia game built with Flutter, AWS, and Python. Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
-                    </p>
+                {resumeData.projects && resumeData.projects.length > 0 ? (
+                  <div className="space-y-3">
+                    {resumeData.projects.map((proj, idx) => (
+                      <div key={idx}>
+                        <div className="flex justify-between items-baseline">
+                          <span className="font-semibold text-sm">{proj.name}</span>
+                          {proj.url && <span className="text-xs text-gray-500">{proj.url}</span>}
+                        </div>
+                        <p className="text-sm leading-snug mt-0.5">{proj.description}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <div className="flex justify-between items-baseline">
-                      <span className="font-semibold text-sm">Stegg</span>
-                      <span className="text-xs text-gray-500">stegg.io</span>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between items-baseline">
+                        <span className="font-semibold text-sm">Inqo</span>
+                        <span className="text-xs text-gray-500">inqo.io</span>
+                      </div>
+                      <p className="text-sm leading-snug mt-0.5">
+                        AI-powered daily trivia game built with Flutter, AWS, and Python. Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
+                      </p>
                     </div>
-                    <p className="text-sm leading-snug mt-0.5">
-                      Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
-                    </p>
+                    <div>
+                      <div className="flex justify-between items-baseline">
+                        <span className="font-semibold text-sm">Stegg</span>
+                        <span className="text-xs text-gray-500">stegg.io</span>
+                      </div>
+                      <p className="text-sm leading-snug mt-0.5">
+                        Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
 
               <section className="mb-5">
@@ -1760,10 +1831,13 @@ ${htmlBody}
               <section className="mb-5">
                 <h2 className="resume-section-title">Certifications</h2>
                 <ul className="text-sm space-y-0.5">
-                  {certifications.map((cert) => (
-                    <li key={cert.name}>
+                  {(resumeData.certifications && resumeData.certifications.length > 0
+                    ? resumeData.certifications
+                    : certifications
+                  ).map((cert, idx) => (
+                    <li key={idx}>
                       <span className="font-semibold">{cert.name}</span>
-                      <span className="text-gray-500"> - {cert.date}</span>
+                      {cert.date && <span className="text-gray-500"> - {cert.date}</span>}
                     </li>
                   ))}
                 </ul>
