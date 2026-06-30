@@ -50,6 +50,8 @@ interface ChatApiResponse {
     projects?: { name: string; url?: string; description: string }[];
     certifications?: { name: string; date?: string }[];
     sectionOrder?: string[];
+    hideSections?: string[];
+    showSections?: string[];
   };
   agent?: AgentDirective;
 }
@@ -112,6 +114,7 @@ interface SavedConversation {
   resumeData: ResumeData;
   previewMode: "cover-letter" | "resume";
   sectionOrder: ResumeSection[];
+  hiddenSections?: ResumeSection[];
 }
 
 const LS_CONVERSATIONS = "cl_conversations";
@@ -380,6 +383,7 @@ export default function CoverLetterPage() {
         resumeData,
         previewMode,
         sectionOrder,
+        hiddenSections: Array.from(hiddenSections),
       };
       const next = existing
         ? prev.map((c) => (c.id === activeConvoId ? updated : c))
@@ -387,7 +391,7 @@ export default function CoverLetterPage() {
       saveConversations(next);
       return next;
     });
-  }, [activeConvoId, messages, draft, coverLetterData, resumeData, previewMode, sectionOrder]);
+  }, [activeConvoId, messages, draft, coverLetterData, resumeData, previewMode, sectionOrder, hiddenSections]);
 
   function loadConvo(convo: SavedConversation) {
     setMessages(convo.messages);
@@ -397,6 +401,7 @@ export default function CoverLetterPage() {
     setResumeData(convo.resumeData);
     setPreviewMode(convo.previewMode);
     setSectionOrder(convo.sectionOrder?.length ? convo.sectionOrder : DEFAULT_SECTION_ORDER);
+    setHiddenSections(new Set(convo.hiddenSections ?? []));
     setActiveConvoId(convo.id);
     localStorage.setItem(LS_ACTIVE, convo.id);
     setShowConvoList(false);
@@ -641,6 +646,16 @@ export default function CoverLetterPage() {
         const remaining = DEFAULT_SECTION_ORDER.filter((s) => !valid.includes(s));
         setSectionOrder([...valid, ...remaining]);
       }
+      if (Array.isArray(nextResume.hideSections) || Array.isArray(nextResume.showSections)) {
+        setHiddenSections((prev) => {
+          const next = new Set(prev);
+          (nextResume.hideSections || []).forEach((s) => {
+            if (DEFAULT_SECTION_ORDER.includes(s as ResumeSection)) next.add(s as ResumeSection);
+          });
+          (nextResume.showSections || []).forEach((s) => next.delete(s as ResumeSection));
+          return next;
+        });
+      }
     }
 
     try {
@@ -852,6 +867,22 @@ export default function CoverLetterPage() {
         : certifications;
       const certHtml = certSource.map((c) => `<li><strong>${escHtml(c.name)}</strong>${c.date ? ` - <span style="color:#555">${escHtml(c.date)}</span>` : ""}</li>`).join("");
 
+      const sectionHtml: Record<ResumeSection, string> = {
+        summary: summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : "",
+        aiSystems: `<section><h2>AI Systems Experience</h2><p style="margin:0">- Multi-agent orchestration &nbsp;&nbsp; - Retrieval-augmented generation (RAG) &nbsp;&nbsp; - Tool-use agents &nbsp;&nbsp; - LLM reasoning chains</p></section>`,
+        skills: `<section><h2>Technical Skills</h2>${skillsHtml}</section>`,
+        experience: `<section><h2>Experience</h2>${expHtml}</section>`,
+        highlights: highlightsHtml,
+        projects: `<section><h2>Projects</h2>${projectsHtml}</section>`,
+        education: `<section><h2>Education</h2>${educationHtml}</section>`,
+        certifications: `<section><h2>Certifications</h2><ul>${certHtml}</ul></section>`,
+      };
+      const bodyHtml = sectionOrder
+        .filter((s) => !hiddenSections.has(s))
+        .map((s) => sectionHtml[s])
+        .filter(Boolean)
+        .join("\n");
+
       const fullHtml = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Resume - ${docName}</title>
 <style>body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;color:#1a1a1a;font-size:10pt;line-height:1.5}
@@ -865,13 +896,7 @@ section{margin-bottom:16px}ul{margin:4px 0 0 16px;padding:0}li{margin-bottom:2px
 <p style="margin:2px 0 0;color:#777;font-size:9pt">${linksLine}</p>
 <p style="margin:2px 0 0;color:#777;font-size:9pt">${contactLine}</p>
 </header>
-${summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : ""}
-<section><h2>Technical Skills</h2>${skillsHtml}</section>
-<section><h2>Experience</h2>${expHtml}</section>
-${highlightsHtml}
-<section><h2>Projects</h2>${projectsHtml}</section>
-<section><h2>Education</h2>${educationHtml}</section>
-<section><h2>Certifications</h2><ul>${certHtml}</ul></section>
+${bodyHtml}
 </body></html>`;
 
       triggerDownload(fullHtml, `${nameSlug}-resume-${dateSlug}.html`);
@@ -944,6 +969,181 @@ ${htmlBody}
 
   const isThinking =
     streaming;
+
+  // Print/PDF resume sections, rendered in the chosen order and respecting hidden sections.
+  function renderPrintSection(sectionId: ResumeSection) {
+    switch (sectionId) {
+      case "summary":
+        return (
+          <section key="summary" className="mb-5">
+            <h2 className="resume-section-title">Summary</h2>
+            <p className="text-sm leading-relaxed">{resumeData.summary || DEFAULT_SUMMARY}</p>
+          </section>
+        );
+      case "aiSystems":
+        return (
+          <section key="aiSystems" className="mb-5">
+            <h2 className="resume-section-title">AI Systems Experience</h2>
+            <div className="text-sm flex flex-wrap gap-x-8 gap-y-0.5">
+              <span>- Multi-agent orchestration</span>
+              <span>- Retrieval-augmented generation (RAG)</span>
+              <span>- Tool-use agents</span>
+              <span>- LLM reasoning chains</span>
+            </div>
+          </section>
+        );
+      case "skills":
+        return (
+          <section key="skills" className="mb-5">
+            <h2 className="resume-section-title">Technical Skills</h2>
+            {resumeData.skills && resumeData.skills.length > 0 ? (
+              <p className="text-sm">{resumeData.skills.join(" · ")}</p>
+            ) : (
+              <div className="text-sm space-y-1">
+                {baseSkills.map((group) => (
+                  <div key={group.category}>
+                    <span className="font-semibold">{group.category}:</span> {group.items.join(", ")}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      case "experience":
+        return (
+          <section key="experience" className="mb-5">
+            <h2 className="resume-section-title">Experience</h2>
+            {resumeData.experience && resumeData.experience.length > 0 ? (
+              <div className="space-y-4">
+                {resumeData.experience.map((exp, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between items-baseline">
+                      <div>
+                        <span className="font-semibold text-sm">{exp.role}</span>
+                        <span className="text-sm text-gray-600"> - {exp.company}</span>
+                      </div>
+                    </div>
+                    <ul className="mt-1 space-y-0.5 list-disc list-outside ml-4">
+                      {exp.bullets.map((b, bi) => (
+                        <li key={bi} className="text-sm leading-snug">{b}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {careerTimeline.map((role) => (
+                  <div key={role.yearRange}>
+                    <div className="flex justify-between items-baseline">
+                      <div>
+                        <span className="font-semibold text-sm">{role.position}</span>
+                        <span className="text-sm text-gray-600"> - {role.company}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 whitespace-nowrap ml-4">{role.yearRange}</span>
+                    </div>
+                    <ul className="mt-1 space-y-0.5 list-disc list-outside ml-4">
+                      {role.responsibilities.map((r, i) => (
+                        <li key={i} className="text-sm leading-snug">
+                          {r.text}
+                          {r.impact && <span className="text-gray-500"> - {r.impact}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      case "highlights":
+        if (!resumeData.highlights || resumeData.highlights.length === 0) return null;
+        return (
+          <section key="highlights" className="mb-5">
+            <h2 className="resume-section-title">Role-Specific Highlights</h2>
+            <ul className="list-disc list-outside ml-4 text-sm space-y-0.5">
+              {resumeData.highlights.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        );
+      case "projects":
+        return (
+          <section key="projects" className="mb-5">
+            <h2 className="resume-section-title">Projects</h2>
+            {resumeData.projects && resumeData.projects.length > 0 ? (
+              <div className="space-y-3">
+                {resumeData.projects.map((proj, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between items-baseline">
+                      <span className="font-semibold text-sm">{proj.name}</span>
+                      {proj.url && <span className="text-xs text-gray-500">{proj.url}</span>}
+                    </div>
+                    <p className="text-sm leading-snug mt-0.5">{proj.description}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-semibold text-sm">Inqo</span>
+                    <span className="text-xs text-gray-500">inqo.io</span>
+                  </div>
+                  <p className="text-sm leading-snug mt-0.5">
+                    AI-powered daily trivia game built with Flutter, AWS, and Python. Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
+                  </p>
+                </div>
+                <div>
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-semibold text-sm">Stegg</span>
+                    <span className="text-xs text-gray-500">stegg.io</span>
+                  </div>
+                  <p className="text-sm leading-snug mt-0.5">
+                    Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+        );
+      case "education":
+        return (
+          <section key="education" className="mb-5">
+            <h2 className="resume-section-title">Education</h2>
+            {education.map((edu) => (
+              <div key={edu.school} className="flex justify-between items-baseline">
+                <div>
+                  <span className="font-semibold text-sm">{edu.degree}</span>
+                  <span className="text-sm text-gray-600"> - {edu.school}</span>
+                </div>
+                <span className="text-xs text-gray-500 ml-4">{edu.years}</span>
+              </div>
+            ))}
+          </section>
+        );
+      case "certifications":
+        return (
+          <section key="certifications" className="mb-5">
+            <h2 className="resume-section-title">Certifications</h2>
+            <ul className="text-sm space-y-0.5">
+              {(resumeData.certifications && resumeData.certifications.length > 0
+                ? resumeData.certifications
+                : certifications
+              ).map((cert, idx) => (
+                <li key={idx}>
+                  <span className="font-semibold">{cert.name}</span>
+                  {cert.date && <span className="text-gray-500"> - {cert.date}</span>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      default:
+        return null;
+    }
+  }
 
   // ── Password gate ─────────────────────────────────────────────
   if (!authed) {
@@ -1691,157 +1891,9 @@ ${htmlBody}
             </>
           ) : (
             <>
-              <section className="mb-5">
-                <h2 className="resume-section-title">Summary</h2>
-                <p className="text-sm leading-relaxed">{resumeData.summary || DEFAULT_SUMMARY}</p>
-              </section>
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">AI Systems Experience</h2>
-                <div className="text-sm flex flex-wrap gap-x-8 gap-y-0.5">
-                  <span>- Multi-agent orchestration</span>
-                  <span>- Retrieval-augmented generation (RAG)</span>
-                  <span>- Tool-use agents</span>
-                  <span>- LLM reasoning chains</span>
-                </div>
-              </section>
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">Technical Skills</h2>
-                {resumeData.skills && resumeData.skills.length > 0 ? (
-                  <p className="text-sm">{resumeData.skills.join(" · ")}</p>
-                ) : (
-                  <div className="text-sm space-y-1">
-                    {baseSkills.map((group) => (
-                      <div key={group.category}>
-                        <span className="font-semibold">{group.category}:</span> {group.items.join(", ")}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">Experience</h2>
-                {resumeData.experience && resumeData.experience.length > 0 ? (
-                  <div className="space-y-4">
-                    {resumeData.experience.map((exp, idx) => (
-                      <div key={idx}>
-                        <div className="flex justify-between items-baseline">
-                          <div>
-                            <span className="font-semibold text-sm">{exp.role}</span>
-                            <span className="text-sm text-gray-600"> - {exp.company}</span>
-                          </div>
-                        </div>
-                        <ul className="mt-1 space-y-0.5 list-disc list-outside ml-4">
-                          {exp.bullets.map((b, bi) => (
-                            <li key={bi} className="text-sm leading-snug">{b}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {careerTimeline.map((role) => (
-                      <div key={role.yearRange}>
-                        <div className="flex justify-between items-baseline">
-                          <div>
-                            <span className="font-semibold text-sm">{role.position}</span>
-                            <span className="text-sm text-gray-600"> - {role.company}</span>
-                          </div>
-                          <span className="text-xs text-gray-500 whitespace-nowrap ml-4">{role.yearRange}</span>
-                        </div>
-                        <ul className="mt-1 space-y-0.5 list-disc list-outside ml-4">
-                          {role.responsibilities.map((r, i) => (
-                            <li key={i} className="text-sm leading-snug">
-                              {r.text}
-                              {r.impact && <span className="text-gray-500"> - {r.impact}</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              {resumeData.highlights && resumeData.highlights.length > 0 && (
-                <section className="mb-5">
-                  <h2 className="resume-section-title">Role-Specific Highlights</h2>
-                  <ul className="list-disc list-outside ml-4 text-sm space-y-0.5">
-                    {resumeData.highlights.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">Projects</h2>
-                {resumeData.projects && resumeData.projects.length > 0 ? (
-                  <div className="space-y-3">
-                    {resumeData.projects.map((proj, idx) => (
-                      <div key={idx}>
-                        <div className="flex justify-between items-baseline">
-                          <span className="font-semibold text-sm">{proj.name}</span>
-                          {proj.url && <span className="text-xs text-gray-500">{proj.url}</span>}
-                        </div>
-                        <p className="text-sm leading-snug mt-0.5">{proj.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between items-baseline">
-                        <span className="font-semibold text-sm">Inqo</span>
-                        <span className="text-xs text-gray-500">inqo.io</span>
-                      </div>
-                      <p className="text-sm leading-snug mt-0.5">
-                        AI-powered daily trivia game built with Flutter, AWS, and Python. Top 200 iOS App Store Trivia. Reduced cloud costs by over 50%. Launched on iOS and Android.
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-baseline">
-                        <span className="font-semibold text-sm">Stegg</span>
-                        <span className="text-xs text-gray-500">stegg.io</span>
-                      </div>
-                      <p className="text-sm leading-snug mt-0.5">
-                        Hide any message inside any image using LSB and Spread Spectrum steganography with encryption. Built with Flutter. Launched on iOS.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">Education</h2>
-                {education.map((edu) => (
-                  <div key={edu.school} className="flex justify-between items-baseline">
-                    <div>
-                      <span className="font-semibold text-sm">{edu.degree}</span>
-                      <span className="text-sm text-gray-600"> - {edu.school}</span>
-                    </div>
-                    <span className="text-xs text-gray-500 ml-4">{edu.years}</span>
-                  </div>
-                ))}
-              </section>
-
-              <section className="mb-5">
-                <h2 className="resume-section-title">Certifications</h2>
-                <ul className="text-sm space-y-0.5">
-                  {(resumeData.certifications && resumeData.certifications.length > 0
-                    ? resumeData.certifications
-                    : certifications
-                  ).map((cert, idx) => (
-                    <li key={idx}>
-                      <span className="font-semibold">{cert.name}</span>
-                      {cert.date && <span className="text-gray-500"> - {cert.date}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {sectionOrder
+                .filter((s) => !hiddenSections.has(s))
+                .map((s) => renderPrintSection(s))}
             </>
           )}
         </div>
