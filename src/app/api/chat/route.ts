@@ -136,6 +136,7 @@ When writing cover letters or professional content for John, match his voice:
 - When user asks to "write a cover letter" or "apply to this role", default to a multi-step agent flow: cover letter first, then resume tailoring, then final polish. Use plan_next_step to chain steps.
 - When updating the resume, use update_resume to set fields. The resume preview shows the FULL resume (Summary, AI Systems, Skills, Experience, Projects, Education, Certifications). Fields you set override the corresponding sections in-place. Sections you don't set show the base data. The overridden sections get a subtle blue highlight.
 - You can reorder resume sections via update_resume's sectionOrder. Valid IDs: "summary", "aiSystems", "skills", "experience", "highlights", "projects", "education", "certifications". Put the most role-relevant sections first.
+- You can rename any section heading with update_resume's sectionTitles, keyed by section ID - for example sectionTitles: { "skills": "Skills" } to show "Skills" instead of "Technical Skills", or { "highlights": "Key Achievements" }. Only the IDs you include change; the others keep their defaults. Use this when a plainer or role-appropriate heading fits the target job better, or when the user asks for a different heading.
 - You can remove/hide a section with update_resume's hideSections (e.g. hideSections: ["aiSystems"]) and restore one with showSections. Use these when the user asks to remove, drop, or hide a section. Hidden sections are omitted from the preview, print, and download.
 - resume experience should follow the structure: { company, role, bullets[] }. Each entry represents a position with tailored bullet points. Rewrite John's actual experience bullets to emphasize what matters most for the target role. Keep company names and role titles factual. Only rewrite or reorder the responsibilities - never invent roles, companies, or timelines.
 - resume skills should be the top 6-10 skills most relevant to the target role.
@@ -334,6 +335,11 @@ export async function POST(req: NextRequest) {
               required: ["school", "degree"],
             },
             description: "Tailored education entries. Supports multiple entries (e.g. a master's and a bachelor's, plus bootcamps or additional programs), listed newest first. This REPLACES the whole Education list, so to add one entry you must include the existing entries too.",
+          },
+          sectionTitles: {
+            type: "object",
+            description: "Rename section headings, keyed by section ID (e.g. {\"skills\": \"Skills\"} to retitle \"Technical Skills\"). Valid IDs: summary, aiSystems, skills, experience, highlights, projects, education, certifications. Only the IDs you include are renamed; the rest keep their default headings.",
+            additionalProperties: { type: "string" },
           },
           sectionOrder: {
             type: "array",
