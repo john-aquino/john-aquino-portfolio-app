@@ -1922,7 +1922,7 @@ ${htmlBody}
 
       {/* Print-only layout */}
       <div className="hidden print:block">
-        <div className="resume-page max-w-[8.5in] mx-auto bg-white text-gray-900 px-10 py-8 print:px-0 print:py-0 print:max-w-none min-h-screen">
+        <div className="resume-page max-w-[8.5in] mx-auto bg-white text-gray-900 px-10 py-8 print:max-w-none min-h-screen print:min-h-0">
           <header className="text-center border-b border-gray-300 pb-4 mb-5">
             <h1 className="text-3xl font-bold tracking-tight">{candidateName || DEFAULT_NAME}</h1>
             <p className="text-sm text-gray-600 mt-1">
