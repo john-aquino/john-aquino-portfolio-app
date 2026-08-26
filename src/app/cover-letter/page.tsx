@@ -866,7 +866,7 @@ export default function CoverLetterPage() {
       const educationSource = resumeData.education && resumeData.education.length > 0
         ? resumeData.education
         : education;
-      const educationHtml = educationSource.map((edu) => `<div style="margin-bottom:6px">
+      const educationHtml = educationSource.map((edu) => `<div style="margin-bottom:8px">
   <div style="display:flex;justify-content:space-between"><span><strong>${escHtml(edu.degree)}</strong> - ${escHtml(edu.school)}</span>${edu.years ? `<span style="color:#777;font-size:9pt">${escHtml(edu.years)}</span>` : ""}</div>
   ${edu.details ? `<p style="margin:2px 0 0;color:#555;font-size:9pt">${escHtml(edu.details)}</p>` : ""}
 </div>`).join("");
@@ -1131,7 +1131,7 @@ ${htmlBody}
         return (
           <section key="education" className="mb-5">
             <h2 className="resume-section-title">Education</h2>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {(resumeData.education && resumeData.education.length > 0
                 ? resumeData.education
                 : education
@@ -1762,7 +1762,7 @@ ${htmlBody}
                                 <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Education</h4>
                                 {moveButtons}
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-2">
                                 {(resumeData.education && resumeData.education.length > 0
                                   ? resumeData.education
                                   : education
