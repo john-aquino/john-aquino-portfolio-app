@@ -29,7 +29,7 @@ export default function ResumePage() {
         </button>
       </div>
 
-      <div className="resume-page max-w-[8.5in] mx-auto bg-white text-gray-900 px-10 py-8 print:px-0 print:py-0 print:max-w-none min-h-screen">
+      <div className="resume-page max-w-[8.5in] mx-auto bg-white text-gray-900 px-10 py-8 print:max-w-none min-h-screen print:min-h-0">
         {/* Header */}
         <header className="text-center border-b border-gray-300 pb-4 mb-5">
           <h1 className="text-3xl font-bold tracking-tight">John Aquino</h1>

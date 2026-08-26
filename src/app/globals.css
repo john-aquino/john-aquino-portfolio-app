@@ -15,8 +15,11 @@
 }
 
 @media print {
+  /* A zero page margin leaves the browser no room to draw its own header and
+     footer (page URL, document title, date, page numbers), so the exported PDF
+     comes out clean. The real margins are applied as padding on .resume-page. */
   @page {
-    margin: 0.5in 0.6in;
+    margin: 0;
     size: letter;
   }
 
@@ -28,5 +31,12 @@
   .resume-page {
     font-size: 11pt;
     line-height: 1.35;
+    padding: 0.5in 0.6in;
+  }
+
+  /* Keep a section heading with the content that follows it. */
+  .resume-section-title {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 }
