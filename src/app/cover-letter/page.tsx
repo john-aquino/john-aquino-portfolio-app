@@ -971,6 +971,27 @@ ${htmlBody}
     triggerDownload(fullHtml, `${nameSlug}-cover-letter-${dateSlug}.html`);
   }
 
+  // Browsers derive the PDF filename and print header from document.title,
+  // which is the site-wide title, so swap in the applicant's name while printing.
+  function printDocument() {
+    const previousTitle = document.title;
+    const label = previewMode === "resume" ? "Resume" : "Cover Letter";
+    document.title = `${(candidateName || DEFAULT_NAME).trim()} - ${label}`;
+
+    let restored = false;
+    const restore = () => {
+      if (restored) return;
+      restored = true;
+      document.title = previousTitle;
+    };
+
+    window.addEventListener("afterprint", restore, { once: true });
+    // Safety net for browsers that never fire afterprint.
+    setTimeout(restore, 60000);
+
+    window.print();
+  }
+
   function copyDraft() {
     if (!draft.trim()) return;
     navigator.clipboard.writeText(normalizeLetterBody(draft)).then(() => {
@@ -1852,7 +1873,7 @@ ${htmlBody}
                 Download
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={printDocument}
                 disabled={previewMode === "cover-letter" ? !draft.trim() : !hasResumeContent}
                 className="text-xs rounded-lg bg-blue-600 text-white px-3 py-2 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
