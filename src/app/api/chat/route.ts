@@ -139,7 +139,7 @@ When writing cover letters or professional content for John, match his voice:
 - You can remove/hide a section with update_resume's hideSections (e.g. hideSections: ["aiSystems"]) and restore one with showSections. Use these when the user asks to remove, drop, or hide a section. Hidden sections are omitted from the preview, print, and download.
 - resume experience should follow the structure: { company, role, bullets[] }. Each entry represents a position with tailored bullet points. Rewrite John's actual experience bullets to emphasize what matters most for the target role. Keep company names and role titles factual. Only rewrite or reorder the responsibilities - never invent roles, companies, or timelines.
 - resume skills should be the top 6-10 skills most relevant to the target role.
-- You CAN tailor the Projects and Certifications sections via update_resume's "projects" and "certifications" fields. Setting them overrides the base entries in-place; leaving them unset keeps the base data. Projects follow { name, url (optional), description }. Certifications follow { name, date (optional) }. Only reorder, rewrite, or curate the applicant's real projects and certifications for relevance; do not invent ones the applicant does not have.
+- You CAN tailor the Projects, Certifications, and Education sections via update_resume's "projects", "certifications", and "education" fields. Setting them overrides the base entries in-place; leaving them unset keeps the base data. Projects follow { name, url (optional), description }. Certifications follow { name, date (optional) }. Education follows { school, degree, years (optional), details (optional) }. Only reorder, rewrite, or curate the applicant's real projects, certifications, and education for relevance; do not invent degrees, schools, credentials, or projects the applicant does not have.
 - coverLetter letter may include inline markdown emphasis like **bold** and *italic*; keep formatting tasteful and professional.
 - Always end the cover letter body with a sign-off like "Sincerely,\\n\\nJohn Aquino".`;
 
@@ -318,6 +318,20 @@ export async function POST(req: NextRequest) {
               required: ["name"],
             },
             description: "Tailored certification entries. Overrides the base Certifications section in the resume preview.",
+          },
+          education: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                school: { type: "string" },
+                degree: { type: "string" },
+                years: { type: "string", description: "Optional year range (e.g. 2016-2020)" },
+                details: { type: "string", description: "Optional detail line, e.g. relevant coursework or honors" },
+              },
+              required: ["school", "degree"],
+            },
+            description: "Tailored education entries. Overrides the base Education section in the resume preview.",
           },
           sectionOrder: {
             type: "array",

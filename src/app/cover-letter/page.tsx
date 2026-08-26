@@ -33,6 +33,7 @@ interface ResumeData {
   experience?: { company: string; role: string; bullets: string[] }[];
   projects?: { name: string; url?: string; description: string }[];
   certifications?: { name: string; date?: string }[];
+  education?: { school: string; degree: string; years?: string; details?: string }[];
 }
 
 interface AgentDirective {
@@ -49,6 +50,7 @@ interface ChatApiResponse {
     experience?: { company: string; role: string; bullets: string[] }[];
     projects?: { name: string; url?: string; description: string }[];
     certifications?: { name: string; date?: string }[];
+    education?: { school: string; degree: string; years?: string; details?: string }[];
     sectionOrder?: string[];
     hideSections?: string[];
     showSections?: string[];
@@ -626,6 +628,16 @@ export default function CoverLetterPage() {
               }))
               .filter((c) => c.name)
           : prev.certifications;
+        const mergedEducation = Array.isArray(nextResume.education)
+          ? nextResume.education
+              .map((e) => ({
+                school: sanitizeNoEmDash(String(e.school || "")),
+                degree: sanitizeNoEmDash(String(e.degree || "")),
+                years: e.years ? sanitizeNoEmDash(String(e.years)) : undefined,
+                details: e.details ? sanitizeNoEmDash(String(e.details)) : undefined,
+              }))
+              .filter((e) => e.school || e.degree)
+          : prev.education;
         return {
           ...prev,
           ...nextResume,
@@ -636,6 +648,7 @@ export default function CoverLetterPage() {
           experience: mergedExperience,
           projects: mergedProjects,
           certifications: mergedCertifications,
+          education: mergedEducation,
         };
       });
       setPreviewMode("resume");
@@ -850,7 +863,13 @@ export default function CoverLetterPage() {
 <h2 style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px">Role-Specific Highlights</h2>
 <ul style="margin:0 0 0 16px;padding:0">${resumeData.highlights.map((h) => `<li style="margin-bottom:2px;font-size:10pt">${escHtml(h)}</li>`).join("")}</ul>
 </section>` : "";
-      const educationHtml = education.map((edu) => `<div style="display:flex;justify-content:space-between"><span><strong>${escHtml(edu.degree)}</strong> — ${escHtml(edu.school)}</span><span style="color:#777;font-size:9pt">${escHtml(edu.years)}</span></div>`).join("");
+      const educationSource = resumeData.education && resumeData.education.length > 0
+        ? resumeData.education
+        : education;
+      const educationHtml = educationSource.map((edu) => `<div style="margin-bottom:6px">
+  <div style="display:flex;justify-content:space-between"><span><strong>${escHtml(edu.degree)}</strong> - ${escHtml(edu.school)}</span>${edu.years ? `<span style="color:#777;font-size:9pt">${escHtml(edu.years)}</span>` : ""}</div>
+  ${edu.details ? `<p style="margin:2px 0 0;color:#555;font-size:9pt">${escHtml(edu.details)}</p>` : ""}
+</div>`).join("");
       const projectsSource = resumeData.projects && resumeData.projects.length > 0
         ? resumeData.projects
         : [
@@ -1112,15 +1131,23 @@ ${htmlBody}
         return (
           <section key="education" className="mb-5">
             <h2 className="resume-section-title">Education</h2>
-            {education.map((edu) => (
-              <div key={edu.school} className="flex justify-between items-baseline">
-                <div>
-                  <span className="font-semibold text-sm">{edu.degree}</span>
-                  <span className="text-sm text-gray-600"> - {edu.school}</span>
+            <div className="space-y-1">
+              {(resumeData.education && resumeData.education.length > 0
+                ? resumeData.education
+                : education
+              ).map((edu, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-baseline">
+                    <div>
+                      <span className="font-semibold text-sm">{edu.degree}</span>
+                      <span className="text-sm text-gray-600"> - {edu.school}</span>
+                    </div>
+                    {edu.years && <span className="text-xs text-gray-500 ml-4">{edu.years}</span>}
+                  </div>
+                  {edu.details && <p className="text-xs leading-snug text-gray-600 mt-0.5">{edu.details}</p>}
                 </div>
-                <span className="text-xs text-gray-500 ml-4">{edu.years}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
         );
       case "certifications":
@@ -1558,6 +1585,7 @@ ${htmlBody}
                         if (key === "highlights") return !!(resumeData.highlights && resumeData.highlights.length > 0);
                         if (key === "projects") return !!(resumeData.projects && resumeData.projects.length > 0);
                         if (key === "certifications") return !!(resumeData.certifications && resumeData.certifications.length > 0);
+                        if (key === "education") return !!(resumeData.education && resumeData.education.length > 0);
                         return false;
                       };
                       const editRing = edited(sectionId) ? "ring-1 ring-blue-200 bg-blue-50/30 rounded-lg p-2 -mx-2" : "";
@@ -1729,20 +1757,30 @@ ${htmlBody}
 
                         case "education":
                           return (
-                            <section key={sectionId} className="group/sec mb-4">
+                            <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
                                 <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Education</h4>
                                 {moveButtons}
                               </div>
-                              {education.map((edu) => (
-                                <div key={edu.school} className="flex justify-between items-baseline">
-                                  <div>
-                                    <span className="font-semibold text-xs">{edu.degree}</span>
-                                    <span className="text-xs text-gray-600"> - {edu.school}</span>
+                              <div className="space-y-1">
+                                {(resumeData.education && resumeData.education.length > 0
+                                  ? resumeData.education
+                                  : education
+                                ).map((edu, idx) => (
+                                  <div key={idx}>
+                                    <div className="flex justify-between items-baseline">
+                                      <div>
+                                        <span className="font-semibold text-xs">{edu.degree}</span>
+                                        <span className="text-xs text-gray-600"> - {edu.school}</span>
+                                      </div>
+                                      {edu.years && <span className="text-[10px] text-gray-500 ml-3">{edu.years}</span>}
+                                    </div>
+                                    {edu.details && (
+                                      <p className="text-[11px] leading-snug text-gray-600 mt-0.5">{edu.details}</p>
+                                    )}
                                   </div>
-                                  <span className="text-[10px] text-gray-500 ml-3">{edu.years}</span>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </section>
                           );
 
