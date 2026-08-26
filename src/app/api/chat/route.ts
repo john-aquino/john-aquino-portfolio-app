@@ -140,6 +140,8 @@ When writing cover letters or professional content for John, match his voice:
 - resume experience should follow the structure: { company, role, bullets[] }. Each entry represents a position with tailored bullet points. Rewrite John's actual experience bullets to emphasize what matters most for the target role. Keep company names and role titles factual. Only rewrite or reorder the responsibilities - never invent roles, companies, or timelines.
 - resume skills should be the top 6-10 skills most relevant to the target role.
 - You CAN tailor the Projects, Certifications, and Education sections via update_resume's "projects", "certifications", and "education" fields. Setting them overrides the base entries in-place; leaving them unset keeps the base data. Projects follow { name, url (optional), description }. Certifications follow { name, date (optional) }. Education follows { school, degree, years (optional), details (optional) }. Only reorder, rewrite, or curate the applicant's real projects, certifications, and education for relevance; do not invent degrees, schools, credentials, or projects the applicant does not have.
+- Each of those three fields is a LIST that REPLACES the entire section, so always send every entry you want shown, not just the changed one. To add a second degree, send both the existing entry and the new one. To remove an entry, send the list without it.
+- Education supports multiple entries - for example a master's and a bachelor's, or a degree plus a bootcamp or certificate program. List them newest first. If the applicant mentions additional schooling, add it as another entry instead of overwriting the existing one.
 - coverLetter letter may include inline markdown emphasis like **bold** and *italic*; keep formatting tasteful and professional.
 - Always end the cover letter body with a sign-off like "Sincerely,\\n\\nJohn Aquino".`;
 
@@ -331,7 +333,7 @@ export async function POST(req: NextRequest) {
               },
               required: ["school", "degree"],
             },
-            description: "Tailored education entries. Overrides the base Education section in the resume preview.",
+            description: "Tailored education entries. Supports multiple entries (e.g. a master's and a bachelor's, plus bootcamps or additional programs), listed newest first. This REPLACES the whole Education list, so to add one entry you must include the existing entries too.",
           },
           sectionOrder: {
             type: "array",
