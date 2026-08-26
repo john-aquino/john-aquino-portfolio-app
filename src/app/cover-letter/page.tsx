@@ -34,6 +34,7 @@ interface ResumeData {
   projects?: { name: string; url?: string; description: string }[];
   certifications?: { name: string; date?: string }[];
   education?: { school: string; degree: string; years?: string; details?: string }[];
+  sectionTitles?: Partial<Record<ResumeSection, string>>;
 }
 
 interface AgentDirective {
@@ -51,6 +52,7 @@ interface ChatApiResponse {
     projects?: { name: string; url?: string; description: string }[];
     certifications?: { name: string; date?: string }[];
     education?: { school: string; degree: string; years?: string; details?: string }[];
+    sectionTitles?: Record<string, string>;
     sectionOrder?: string[];
     hideSections?: string[];
     showSections?: string[];
@@ -103,6 +105,17 @@ function escapeRegex(value: string) {
 
 // ── Conversation persistence ────────────────────────────────────
 type ResumeSection = "summary" | "aiSystems" | "skills" | "experience" | "highlights" | "projects" | "education" | "certifications";
+
+const DEFAULT_SECTION_TITLES: Record<ResumeSection, string> = {
+  summary: "Summary",
+  aiSystems: "AI Systems Experience",
+  skills: "Technical Skills",
+  experience: "Experience",
+  highlights: "Role-Specific Highlights",
+  projects: "Projects",
+  education: "Education",
+  certifications: "Certifications",
+};
 
 interface SavedConversation {
   id: string;
@@ -638,6 +651,17 @@ export default function CoverLetterPage() {
               }))
               .filter((e) => e.school || e.degree)
           : prev.education;
+        // Titles merge instead of replacing, so renaming one heading leaves the rest alone.
+        let mergedTitles = prev.sectionTitles;
+        if (nextResume.sectionTitles && typeof nextResume.sectionTitles === "object") {
+          const incoming: Partial<Record<ResumeSection, string>> = {};
+          for (const [key, value] of Object.entries(nextResume.sectionTitles)) {
+            if (!DEFAULT_SECTION_ORDER.includes(key as ResumeSection)) continue;
+            const title = sanitizeNoEmDash(String(value ?? ""));
+            if (title) incoming[key as ResumeSection] = title;
+          }
+          mergedTitles = { ...(prev.sectionTitles || {}), ...incoming };
+        }
         return {
           ...prev,
           ...nextResume,
@@ -649,6 +673,7 @@ export default function CoverLetterPage() {
           projects: mergedProjects,
           certifications: mergedCertifications,
           education: mergedEducation,
+          sectionTitles: mergedTitles,
         };
       });
       setPreviewMode("resume");
@@ -860,7 +885,7 @@ export default function CoverLetterPage() {
 </div>`).join("");
       const highlightsHtml = resumeData.highlights && resumeData.highlights.length > 0
         ? `<section style="margin-bottom:20px">
-<h2 style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px">Role-Specific Highlights</h2>
+<h2 style="font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px">${escHtml(sectionTitle("highlights"))}</h2>
 <ul style="margin:0 0 0 16px;padding:0">${resumeData.highlights.map((h) => `<li style="margin-bottom:2px;font-size:10pt">${escHtml(h)}</li>`).join("")}</ul>
 </section>` : "";
       const educationSource = resumeData.education && resumeData.education.length > 0
@@ -886,15 +911,16 @@ export default function CoverLetterPage() {
         : certifications;
       const certHtml = certSource.map((c) => `<li><strong>${escHtml(c.name)}</strong>${c.date ? ` - <span style="color:#555">${escHtml(c.date)}</span>` : ""}</li>`).join("");
 
+      const h2 = (id: ResumeSection) => `<h2>${escHtml(sectionTitle(id))}</h2>`;
       const sectionHtml: Record<ResumeSection, string> = {
-        summary: summary ? `<section><h2>Summary</h2><p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : "",
-        aiSystems: `<section><h2>AI Systems Experience</h2><p style="margin:0">- Multi-agent orchestration &nbsp;&nbsp; - Retrieval-augmented generation (RAG) &nbsp;&nbsp; - Tool-use agents &nbsp;&nbsp; - LLM reasoning chains</p></section>`,
-        skills: `<section><h2>Technical Skills</h2>${skillsHtml}</section>`,
-        experience: `<section><h2>Experience</h2>${expHtml}</section>`,
+        summary: summary ? `<section>${h2("summary")}<p style="margin:0;font-size:10pt;line-height:1.6">${summary}</p></section>` : "",
+        aiSystems: `<section>${h2("aiSystems")}<p style="margin:0">- Multi-agent orchestration &nbsp;&nbsp; - Retrieval-augmented generation (RAG) &nbsp;&nbsp; - Tool-use agents &nbsp;&nbsp; - LLM reasoning chains</p></section>`,
+        skills: `<section>${h2("skills")}${skillsHtml}</section>`,
+        experience: `<section>${h2("experience")}${expHtml}</section>`,
         highlights: highlightsHtml,
-        projects: `<section><h2>Projects</h2>${projectsHtml}</section>`,
-        education: `<section><h2>Education</h2>${educationHtml}</section>`,
-        certifications: `<section><h2>Certifications</h2><ul>${certHtml}</ul></section>`,
+        projects: `<section>${h2("projects")}${projectsHtml}</section>`,
+        education: `<section>${h2("education")}${educationHtml}</section>`,
+        certifications: `<section>${h2("certifications")}<ul>${certHtml}</ul></section>`,
       };
       const bodyHtml = sectionOrder
         .filter((s) => !hiddenSections.has(s))
@@ -1010,20 +1036,25 @@ ${htmlBody}
   const isThinking =
     streaming;
 
+  // Section headings can be renamed by the agent (e.g. "Technical Skills" -> "Skills").
+  function sectionTitle(sectionId: ResumeSection) {
+    return resumeData.sectionTitles?.[sectionId]?.trim() || DEFAULT_SECTION_TITLES[sectionId];
+  }
+
   // Print/PDF resume sections, rendered in the chosen order and respecting hidden sections.
   function renderPrintSection(sectionId: ResumeSection) {
     switch (sectionId) {
       case "summary":
         return (
           <section key="summary" className="mb-5">
-            <h2 className="resume-section-title">Summary</h2>
+            <h2 className="resume-section-title">{sectionTitle("summary")}</h2>
             <p className="text-sm leading-relaxed">{resumeData.summary || DEFAULT_SUMMARY}</p>
           </section>
         );
       case "aiSystems":
         return (
           <section key="aiSystems" className="mb-5">
-            <h2 className="resume-section-title">AI Systems Experience</h2>
+            <h2 className="resume-section-title">{sectionTitle("aiSystems")}</h2>
             <div className="text-sm flex flex-wrap gap-x-8 gap-y-0.5">
               <span>- Multi-agent orchestration</span>
               <span>- Retrieval-augmented generation (RAG)</span>
@@ -1035,7 +1066,7 @@ ${htmlBody}
       case "skills":
         return (
           <section key="skills" className="mb-5">
-            <h2 className="resume-section-title">Technical Skills</h2>
+            <h2 className="resume-section-title">{sectionTitle("skills")}</h2>
             {resumeData.skills && resumeData.skills.length > 0 ? (
               <p className="text-sm">{resumeData.skills.join(" · ")}</p>
             ) : (
@@ -1052,7 +1083,7 @@ ${htmlBody}
       case "experience":
         return (
           <section key="experience" className="mb-5">
-            <h2 className="resume-section-title">Experience</h2>
+            <h2 className="resume-section-title">{sectionTitle("experience")}</h2>
             {resumeData.experience && resumeData.experience.length > 0 ? (
               <div className="space-y-4">
                 {resumeData.experience.map((exp, idx) => (
@@ -1100,7 +1131,7 @@ ${htmlBody}
         if (!resumeData.highlights || resumeData.highlights.length === 0) return null;
         return (
           <section key="highlights" className="mb-5">
-            <h2 className="resume-section-title">Role-Specific Highlights</h2>
+            <h2 className="resume-section-title">{sectionTitle("highlights")}</h2>
             <ul className="list-disc list-outside ml-4 text-sm space-y-0.5">
               {resumeData.highlights.map((item, idx) => (
                 <li key={idx}>{item}</li>
@@ -1111,7 +1142,7 @@ ${htmlBody}
       case "projects":
         return (
           <section key="projects" className="mb-5">
-            <h2 className="resume-section-title">Projects</h2>
+            <h2 className="resume-section-title">{sectionTitle("projects")}</h2>
             {resumeData.projects && resumeData.projects.length > 0 ? (
               <div className="space-y-3">
                 {resumeData.projects.map((proj, idx) => (
@@ -1151,7 +1182,7 @@ ${htmlBody}
       case "education":
         return (
           <section key="education" className="mb-5">
-            <h2 className="resume-section-title">Education</h2>
+            <h2 className="resume-section-title">{sectionTitle("education")}</h2>
             <div className="space-y-2">
               {(resumeData.education && resumeData.education.length > 0
                 ? resumeData.education
@@ -1174,7 +1205,7 @@ ${htmlBody}
       case "certifications":
         return (
           <section key="certifications" className="mb-5">
-            <h2 className="resume-section-title">Certifications</h2>
+            <h2 className="resume-section-title">{sectionTitle("certifications")}</h2>
             <ul className="text-sm space-y-0.5">
               {(resumeData.certifications && resumeData.certifications.length > 0
                 ? resumeData.certifications
@@ -1616,7 +1647,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Summary</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("summary")}</h4>
                                 {moveButtons}
                               </div>
                               <p className="text-xs leading-relaxed text-gray-800">{resumeData.summary || DEFAULT_SUMMARY}</p>
@@ -1627,7 +1658,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className="group/sec mb-4">
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">AI Systems Experience</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("aiSystems")}</h4>
                                 {moveButtons}
                               </div>
                               <div className="text-xs flex flex-wrap gap-x-6 gap-y-0.5 text-gray-800">
@@ -1643,7 +1674,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Technical Skills</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("skills")}</h4>
                                 {moveButtons}
                               </div>
                               {resumeData.skills && resumeData.skills.length > 0 ? (
@@ -1668,7 +1699,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Experience</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("experience")}</h4>
                                 {moveButtons}
                               </div>
                               {resumeData.experience && resumeData.experience.length > 0 ? (
@@ -1720,7 +1751,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Role-Specific Highlights</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("highlights")}</h4>
                                 {moveButtons}
                               </div>
                               <ul className="list-disc list-outside ml-4 text-xs text-gray-800 space-y-0.5">
@@ -1735,7 +1766,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Projects</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("projects")}</h4>
                                 {moveButtons}
                               </div>
                               {resumeData.projects && resumeData.projects.length > 0 ? (
@@ -1780,7 +1811,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Education</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("education")}</h4>
                                 {moveButtons}
                               </div>
                               <div className="space-y-2">
@@ -1809,7 +1840,7 @@ ${htmlBody}
                           return (
                             <section key={sectionId} className={`group/sec mb-4 ${editRing}`}>
                               <div className="flex items-center">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">Certifications</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-2 flex-1">{sectionTitle("certifications")}</h4>
                                 {moveButtons}
                               </div>
                               <ul className="text-xs space-y-0.5 text-gray-800">
